@@ -44,5 +44,7 @@ git push origin v1.0.0
 ```
 
 Alternatively, run the **Release** workflow manually and provide the version.
-The workflow compiles the sketch with MXCHIP board core 2.0.0, creates the tag
-for manual runs, and publishes the generated firmware files in a GitHub release.
+Select **Build without creating a tag or release** to validate the release build
+without publishing it. The workflow compiles the sketch with MXCHIP board core
+2.0.0, creates the tag for non-dry manual runs, and publishes the generated
+firmware files in a GitHub release.

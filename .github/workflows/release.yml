@@ -11,6 +11,11 @@ on:
         description: Release version in vX.Y.Z format
         required: true
         type: string
+      dry_run:
+        description: Build without creating a tag or release
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -44,7 +49,22 @@ jobs:
           echo "value=$version" >> "$GITHUB_OUTPUT"
 
       - name: Set up Arduino CLI
-        uses: arduino/setup-arduino-cli@v2.0.0
+        env:
+          ARDUINO_CLI_VERSION: 1.5.1
+          ARDUINO_CLI_SHA256: 28a8e119c498a25607821c36cb2dc49e8463941b261a0d99091baa7bc692dd2b
+        run: |
+          archive="arduino-cli_${ARDUINO_CLI_VERSION}_Linux_64bit.tar.gz"
+
+          curl --fail --location --silent --show-error \
+            "https://github.com/arduino/arduino-cli/releases/download/v${ARDUINO_CLI_VERSION}/${archive}" \
+            --output "/tmp/${archive}"
+          echo "${ARDUINO_CLI_SHA256}  /tmp/${archive}" | sha256sum --check
+
+          tar -xzf "/tmp/${archive}" -C /tmp arduino-cli
+          install -d "$HOME/.local/bin"
+          install /tmp/arduino-cli "$HOME/.local/bin/arduino-cli"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/arduino-cli" version
 
       - name: Install MXCHIP board core
         run: |
@@ -87,7 +107,7 @@ jobs:
             /tmp/MXCHIPTest1
 
       - name: Create tag for manual release
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
         env:
           VERSION: ${{ steps.version.outputs.value }}
         run: |
@@ -100,6 +120,7 @@ jobs:
           git push origin "$VERSION"
 
       - name: Publish GitHub release
+        if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.value }}
