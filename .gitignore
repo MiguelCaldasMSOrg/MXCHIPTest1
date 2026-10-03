@@ -18,6 +18,10 @@ _build/
 !firmware/
 !firmware/*.bin
 
+# Local offline documentation mirrors
+/docs/Azure-IoT-DevKit/
+/docs/MXCHIP/
+
 # Arduino and editor-local state
 .arduinoIDE/
 .vscode/

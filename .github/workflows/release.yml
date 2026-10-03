@@ -20,6 +20,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -41,7 +45,9 @@ jobs:
             version="$GITHUB_REF_NAME"
           fi
 
-          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+          number='(0|[1-9][0-9]*)'
+          identifier='(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
+          if [[ ! "$version" =~ ^v${number}\.${number}\.${number}(-${identifier}(\.${identifier})*)?$ ]]; then
             echo "::error::Version '$version' must use vX.Y.Z semantic-version format."
             exit 1
           fi
@@ -97,12 +103,44 @@ jobs:
             | sha256sum --check
           tar -xf /tmp/mxchip-openocd.tar --strip-components=1 -C "$openocd_dir"
 
-      - name: Compile firmware
+      - name: Test protocol and gated application behavior
+        run: |
+          for mode in 0 1; do
+            g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
+              -DMXCHIP_ENABLE_AUDIO_TESTS="$mode" -I src \
+              tests/rf_receiver_test.cpp -o "/tmp/rf-receiver-test-$mode"
+            "/tmp/rf-receiver-test-$mode"
+            g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
+              -DMXCHIP_ENABLE_AUDIO_TESTS="$mode" -I tests/stubs -I src \
+              tests/application_test.cpp src/AudioTests.cpp src/RadioBridge.cpp \
+              -o "/tmp/application-test-$mode"
+            "/tmp/application-test-$mode"
+          done
+
+      - name: Test firmware packaging
+        shell: pwsh
+        run: |
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-package-firmware.ps1")
+
+      - name: Prepare sketch sources
         run: |
           install -d /tmp/MXCHIPTest1
           cp MXCHIPTest1.ino /tmp/MXCHIPTest1/
+          cp -a src /tmp/MXCHIPTest1/src
+
+      - name: Validate audio configuration
+        run: |
           arduino-cli compile \
             --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 \
+            --build-property compiler.cpp.extra_flags=-DMXCHIP_ENABLE_AUDIO_TESTS=1 \
+            --build-path "$RUNNER_TEMP/audio-build" \
+            /tmp/MXCHIPTest1
+
+      - name: Compile RF release firmware
+        run: |
+          arduino-cli compile \
+            --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 \
+            --build-property compiler.cpp.extra_flags=-DMXCHIP_ENABLE_AUDIO_TESTS=0 \
             --output-dir "$GITHUB_WORKSPACE/build" \
             /tmp/MXCHIPTest1
 
@@ -116,13 +154,13 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.value }}
         run: |
-          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+          if git show-ref --verify --quiet "refs/tags/$VERSION"; then
             echo "::error::Tag '$VERSION' already exists."
             exit 1
           fi
 
           git tag "$VERSION" "$GITHUB_SHA"
-          git push origin "$VERSION"
+          git push origin "refs/tags/$VERSION"
 
       - name: Publish GitHub release
         if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
@@ -130,9 +168,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.value }}
         run: |
-          options=(--title "$VERSION" --generate-notes)
+          options=(--title "$VERSION" --generate-notes --verify-tag)
           if [[ "$VERSION" == *-* ]]; then
             options+=(--prerelease)
           fi
 
-          gh release create "$VERSION" build/* "${options[@]}"
+          assets=(
+            build/MXCHIPTest1.ino.bin
+            build/MXCHIPTest1.full.bin
+            build/MXCHIPTest1.ino.elf
+            build/MXCHIPTest1.ino.map
+          )
+          for asset in "${assets[@]}"; do
+            if [[ ! -s "$asset" ]]; then
+              echo "::error::Missing or empty release asset: $asset"
+              exit 1
+            fi
+          done
+          gh release create "$VERSION" "${assets[@]}" "${options[@]}"

@@ -24,7 +24,7 @@ if ($applicationOffset + $application.Length -gt $flashSize) {
 
 $stackPointer = [BitConverter]::ToUInt32($application, 0)
 $resetVector = [BitConverter]::ToUInt32($application, 4)
-if ($stackPointer -lt 0x20000000 -or $stackPointer -gt 0x20040000 -or $stackPointer % 8 -ne 0) {
+if ($stackPointer -le 0x20000000 -or $stackPointer -gt 0x20040000 -or $stackPointer % 8 -ne 0) {
   throw "The application stack pointer is outside the expected aligned AZ3166 RAM range."
 }
 if ($resetVector % 2 -ne 1) {
