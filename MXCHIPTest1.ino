@@ -1,16 +1,13 @@
-#include <Arduino.h>
-
 namespace {
-constexpr unsigned long kBlinkIntervalMs = 500;
-constexpr unsigned long kDisplayIntervalMs = 1000;
+  constexpr unsigned long kBlinkIntervalMs = 500;
+  constexpr unsigned long kDisplayIntervalMs = 1000;
 
-unsigned long lastBlinkMs = 0;
-unsigned long lastDisplayMs = 0;
-bool ledOn = false;
+  unsigned long lastBlinkMs = 0;
+  unsigned long lastDisplayMs = 0;
+  bool ledOn = false;
 }
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
@@ -24,8 +21,7 @@ void setup()
   Serial.println("MXCHIP AZ3166 test sketch started.");
 }
 
-void loop()
-{
+void loop() {
   const unsigned long now = millis();
 
   if (now - lastBlinkMs >= kBlinkIntervalMs) {

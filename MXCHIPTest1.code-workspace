@@ -5,6 +5,10 @@
 		}
 	],
 	"settings": {
+		"C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+		"files.associations": {
+			"*.ino": "cpp"
+		},
 		"chat.tools.terminal.autoApprove": {
 			"cd": true,
 			"echo": true,
