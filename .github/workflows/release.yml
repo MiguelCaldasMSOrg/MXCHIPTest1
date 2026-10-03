@@ -78,7 +78,13 @@ jobs:
           tar -xf /tmp/mxchip-openocd.tar --strip-components=1 -C "$openocd_dir"
 
       - name: Compile firmware
-        run: arduino-cli compile --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 --output-dir build .
+        run: |
+          install -d /tmp/MXCHIPTest1
+          cp MXCHIPTest1.ino /tmp/MXCHIPTest1/
+          arduino-cli compile \
+            --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 \
+            --output-dir "$GITHUB_WORKSPACE/build" \
+            /tmp/MXCHIPTest1
 
       - name: Create tag for manual release
         if: github.event_name == 'workflow_dispatch'
