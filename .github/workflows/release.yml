@@ -51,6 +51,7 @@ jobs:
           arduino-cli config init
           arduino-cli config add board_manager.additional_urls \
             https://raw.githubusercontent.com/VSChina/azureiotdevkit_tools/master/package_azureboard_index.json
+          arduino-cli config set board_manager.enable_unsafe_install true
           arduino-cli core update-index
           arduino-cli core install AZ3166:stm32f4@2.0.0
 
