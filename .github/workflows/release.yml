@@ -48,12 +48,34 @@ jobs:
 
       - name: Install MXCHIP board core
         run: |
-          arduino-cli config init
-          arduino-cli config add board_manager.additional_urls \
-            https://raw.githubusercontent.com/VSChina/azureiotdevkit_tools/master/package_azureboard_index.json
-          arduino-cli config set board_manager.enable_unsafe_install true
-          arduino-cli core update-index
-          arduino-cli core install AZ3166:stm32f4@2.0.0
+          package_root="$HOME/.arduino15/packages/AZ3166"
+          core_dir="$package_root/hardware/stm32f4/2.0.0"
+          gcc_dir="$package_root/tools/arm-none-eabi-gcc/5_4-2016q3"
+          openocd_dir="$package_root/tools/openocd/0.10.0"
+
+          install -d "$core_dir" "$gcc_dir" "$openocd_dir"
+
+          curl --fail --location --silent --show-error \
+            https://github.com/microsoft/devkit-sdk/releases/download/2.0.0/AZ3166-2.0.0.zip \
+            --output /tmp/AZ3166-2.0.0.zip
+          echo "6af3a1a95741a53da4b9284b8b88d46aa18976c4c0e8ff2bc418e56196863894  /tmp/AZ3166-2.0.0.zip" \
+            | sha256sum --check
+          unzip -q /tmp/AZ3166-2.0.0.zip -d /tmp/mxchip-core
+          cp -a /tmp/mxchip-core/AZ3166/. "$core_dir"
+
+          curl --fail --location --silent --show-error \
+            https://github.com/VSChina/azureiotdevkit_tools/releases/download/1.0/gcc-arm-none-eabi-6-2017-q1-linux64.tar.gz \
+            --output /tmp/mxchip-gcc.tar.gz
+          echo "48e71153fae405fe771b3b339111404cd4e363eff4316b15cfe9835758da0221  /tmp/mxchip-gcc.tar.gz" \
+            | sha256sum --check
+          tar -xzf /tmp/mxchip-gcc.tar.gz --strip-components=1 -C "$gcc_dir"
+
+          curl --fail --location --silent --show-error \
+            https://github.com/VSChina/azureiotdevkit_tools/releases/download/1.0/openocd-linux64-0.10.0.tar \
+            --output /tmp/mxchip-openocd.tar
+          echo "c85f0ea48136ed09b03ecc5a6861dc4be77e012defe5f8e574f22f9f86ab52c1  /tmp/mxchip-openocd.tar" \
+            | sha256sum --check
+          tar -xf /tmp/mxchip-openocd.tar --strip-components=1 -C "$openocd_dir"
 
       - name: Compile firmware
         run: arduino-cli compile --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 --output-dir build .
