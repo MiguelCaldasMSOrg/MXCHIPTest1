@@ -1,0 +1,31 @@
+# Arduino build outputs
+build/
+_build/
+*.a
+*.bin
+*.d
+*.eep
+*.elf
+*.hex
+*.lss
+*.lst
+*.map
+*.o
+*.partitions.bin
+*.sym
+
+# Arduino and editor-local state
+.arduinoIDE/
+.vscode/
+*.ino.cpp
+*.swp
+*~
+
+# Local secrets
+arduino_secrets.h
+secrets.h
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,3 @@
+default_fqbn: AZ3166:stm32f4:MXCHIP_AZ3166
+default_port: COM3
+default_protocol: serial

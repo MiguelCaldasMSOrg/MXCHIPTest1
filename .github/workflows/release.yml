@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version in vX.Y.Z format
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            version="$DISPATCH_VERSION"
+          else
+            version="$GITHUB_REF_NAME"
+          fi
+
+          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Version '$version' must use vX.Y.Z semantic-version format."
+            exit 1
+          fi
+
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install MXCHIP board core
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls \
+            https://raw.githubusercontent.com/VSChina/azureiotdevkit_tools/master/package_azureboard_index.json
+          arduino-cli core update-index
+          arduino-cli core install AZ3166:stm32f4@2.0.0
+
+      - name: Compile firmware
+        run: arduino-cli compile --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 --output-dir build .
+
+      - name: Create tag for manual release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "::error::Tag '$VERSION' already exists."
+            exit 1
+          fi
+
+          git tag "$VERSION" "$GITHUB_SHA"
+          git push origin "$VERSION"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          options=(--title "$VERSION" --generate-notes)
+          if [[ "$VERSION" == *-* ]]; then
+            options+=(--prerelease)
+          fi
+
+          gh release create "$VERSION" build/* "${options[@]}"
