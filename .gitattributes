@@ -1,0 +1,3 @@
+# Preserve the downloaded documentation and asset bytes without line-ending conversion.
+docs/Azure-IoT-DevKit/** -text linguist-vendored
+docs/MXCHIP/** -text linguist-vendored

@@ -1,0 +1,360 @@
+<!doctype html>
+
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin SEO -->
+
+
+
+
+
+
+
+
+
+<title>PnP Get Started - IoT DevKit</title>
+
+
+
+
+<meta name="description" content="This is the GetStarted tutorial for IoT DevKit, please follow the guide to run it in IoT Workbench and use the DevKit as PnP device.">
+
+
+
+
+<meta name="author" content="MXChip IoT DevKit">
+
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="IoT DevKit">
+<meta property="og:title" content="PnP Get Started">
+
+
+  <link rel="canonical" href="index.html">
+  <meta property="og:url" content="https://microsoft.github.io/azure-iot-developer-kit/projects/02-get-started-pnp/">
+
+
+
+  <meta property="og:description" content="This is the GetStarted tutorial for IoT DevKit, please follow the guide to run it in IoT Workbench and use the DevKit as PnP device.">
+
+
+
+
+
+  
+
+  
+
+
+
+  <meta property="og:image" content="https://microsoft.github.io/azure-iot-developer-kit/assets/images/projects-devkit-get-started-th.jpg">
+
+
+
+
+
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Organization",
+      "url": "https://microsoft.github.io/azure-iot-developer-kit",
+      "logo": "https://microsoft.github.io/azure-iot-developer-kit/assets/images/site-logo.png"
+    }
+  </script>
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context" : "http://schema.org",
+      "@type" : "Person",
+      "name" : "MXChip IoT DevKit",
+      "url" : "https://microsoft.github.io/azure-iot-developer-kit",
+      "sameAs" : null
+    }
+  </script>
+
+
+
+  <meta name="google-site-verification" content="n4bhlh177u2CIebyTNMalC9SNVqMY1HV4qD104d8X2g" />
+
+
+
+
+<!-- end SEO -->
+
+
+<link href="../../feed.xml" type="application/atom+xml" rel="alternate" title="IoT DevKit Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="../../assets/css/extended/extended_main.css">
+
+<!--[if lte IE 9]>
+  <style>
+    /* old IE unsupported flexbox fixes */
+    .greedy-nav .site-title {
+      padding-right: 3em;
+    }
+    .greedy-nav button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+    }
+  </style>
+<![endif]-->
+
+<meta http-equiv="cleartype" content="on">
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+<link rel="apple-touch-icon" sizes="57x57" href="../../assets/images/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="../../assets/images/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="../../assets/images/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="../../assets/images/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="../../assets/images/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="../../assets/images/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="../../assets/images/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="../../assets/images/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../assets/images/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../assets/images/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="../../assets/images/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../assets/images/favicon-16x16.png">
+<link rel="manifest" href="../../assets/images/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/azure-iot-developer-kit/assets/images/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<!-- Google Optimize -->
+<style>.async-hide { opacity: 0 !important} </style>
+
+<!-- end custom head snippets -->
+  </head>
+
+  <body class="layout--single">
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+    <div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        <a class="site-title" href="../../index.html">IoT DevKit</a>
+        <ul class="visible-links">
+          
+            
+            <li class="masthead__menu-item "><a href="https://aka.ms/iot-devkit">Get Started</a></li>
+          
+        </ul>
+        <button type="button" class="hidden" aria-haspopup="true">
+          <span class="navicon"></span>
+          <span class="screen-reader-text">Toggle Navigation</span>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+    
+  
+
+
+
+
+
+<div class="page__hero--overlay-full"
+ style="  background-image: url('../../assets/images/projects-devkit-get-started-th.jpg');"
+>
+  
+  
+    <div class="wrapper" style="">
+
+      
+
+        <h1 class="page__title" itemprop="headline">
+          
+            PnP Get Started
+
+          
+          
+        </h1>
+        
+          <p class="page__lead">This is the GetStarted tutorial for IoT DevKit, please follow the guide to run it in IoT Workbench and use the DevKit as PnP device.
+</p>
+        
+        
+        <!---->
+        
+        <!-- Secondary actions -->
+        
+
+        
+      
+      
+
+    </div>
+  
+  
+  
+</div>
+
+
+
+
+
+<div id="main" role="main">
+  
+
+  <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+    <meta itemprop="headline" content="PnP Get Started">
+    <meta itemprop="description" content="This is the GetStarted tutorial for IoT DevKit, please follow the guide to run it in IoT Workbench and use the DevKit as PnP device.">
+    
+    <meta itemprop="dateModified" content="July 20, 2020">
+
+    <div class="page__inner-wrap">
+      
+
+      <section class="page__content" itemprop="text">
+        
+
+        <div><a href="https://docs.microsoft.com/en-us/samples/azure-samples/mxchip-iot-devkit-pnp-get-started/sample/" class="btn">Direct Link</a></div>
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Updated:</strong> <time datetime="2020-07-20">July 20, 2020</time></p>
+        
+      </footer>
+
+      <section class="page__share">
+  <p>Reach us at
+      <a href="http://gitter.im/Microsoft/azure-iot-developer-kit" target="_blank">
+        <img src="../../_external/badges.gitter.im/iot-devkit.svg" alt="Join Gitter chat" style="height:25px">
+        <span class="screen-reader-text">Gitter</span>
+      </a>, get support at
+      <a href="https://stackoverflow.com/questions/tagged/iot-devkit" target="_blank">
+        <img src="../../_external/cdn.sstatic.net/Sites/stackoverflow/company/img/logos/so/so-logo.svg" alt="Get help from Stack Overflow" style="width:150px; height:37px">
+        <span class="screen-reader-text">Stack Overflow</span>
+      </a> or share us on
+      <span class="social-icons-list">
+        <a href="https://twitter.com/intent/tweet?text=PnP Get Started https://microsoft.github.io/azure-iot-developer-kit/projects/02-get-started-pnp/" class="btn btn--twitter" title="Share on Twitter"><i class="fa fa-fw fa-twitter" aria-hidden="true"></i><span class="screen-reader-text">Twitter</span></a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://microsoft.github.io/azure-iot-developer-kit/projects/02-get-started-pnp/" class="btn btn--facebook" title="Share on Facebook"><i class="fa fa-fw fa-facebook" aria-hidden="true"></i><span class="screen-reader-text">Facebook</span></a>
+        <a href="https://www.linkedin.com/shareArticle?mini=true&url=https://microsoft.github.io/azure-iot-developer-kit/projects/02-get-started-pnp/" class="btn btn--linkedin" title="Share on LinkedIn"><i class="fa fa-fw fa-linkedin" aria-hidden="true"></i><span class="screen-reader-text">LinkedIn</span></a>
+      </span>
+  </p>
+</section>
+
+
+      
+    </div>
+
+    
+  </article>
+
+  
+  
+</div>
+
+
+    <div class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+          <div class="page__footer-follow">
+
+  <dl class="social-icons">
+    
+      <dt><strong>Follow:</strong></dt>
+    
+    
+    
+    
+      <dd><a href="http://github.com/Microsoft/azure-iot-developer-kit"><i class="fa fa-fw fa-github" aria-hidden="true"></i> GitHub</a></dd>
+    
+    
+    <dd><a href="../../feed.xml"><i class="fa fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></dd>
+  </dl>
+</div>
+
+<div class="page__footer-copyright">Copyright &copy; 2021 Microsoft Corp.</div>
+      </footer>
+    </div>
+
+    <script src="../../assets/js/main.min.js"></script>
+
+
+
+
+  <!-- start custom analytics snippet -->
+
+<!-- Google Optimize -->
+<script>(function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date;
+h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};
+(a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
+})(window,document.documentElement,'async-hide','dataLayer',4000,
+{'GTM-TMNC6P5':true});</script>
+
+<!-- Google Analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-98097460-1', 'auto');
+</script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MVB7TDR');</script>
+<!-- End Google Tag Manager -->
+
+<!-- LinkedIn Insight Tag -->
+<script type="text/javascript">
+_linkedin_data_partner_id = "118572";
+</script><script type="text/javascript">
+(function(){var s = document.getElementsByTagName("script")[0];
+var b = document.createElement("script");
+b.type = "text/javascript";b.async = true;
+b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+s.parentNode.insertBefore(b, s);})();
+</script>
+<noscript>
+<img height="1" width="1" style="display:none;" alt="" src="https://dc.ads.linkedin.com/collect/?pid=118572&fmt=gif" />
+</noscript>
+<!-- End LinkedIn Insight Tag -->
+
+<!-- end custom analytics snippet -->
+
+
+
+
+
+
+  </body>
+</html>

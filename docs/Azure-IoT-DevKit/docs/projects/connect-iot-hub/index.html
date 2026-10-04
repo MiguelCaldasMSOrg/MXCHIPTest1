@@ -1,0 +1,643 @@
+<!doctype html>
+
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin SEO -->
+
+
+
+
+
+
+
+
+
+<title>Connect to Azure IoT Hub - IoT DevKit</title>
+
+
+
+
+<meta name="description" content="Collect and send temperature and humidity data from DevKit to Azure IoT Hub.">
+
+
+
+
+<meta name="author" content="MXChip IoT DevKit">
+
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="IoT DevKit">
+<meta property="og:title" content="Connect to Azure IoT Hub">
+
+
+  <link rel="canonical" href="index.html">
+  <meta property="og:url" content="https://microsoft.github.io/azure-iot-developer-kit/docs/projects/connect-iot-hub/">
+
+
+
+  <meta property="og:description" content="Collect and send temperature and humidity data from DevKit to Azure IoT Hub.">
+
+
+
+
+
+  
+
+  
+
+
+
+  <meta property="og:image" content="https://microsoft.github.io/azure-iot-developer-kit/assets/images/projects-iothub.jpg">
+
+
+
+
+
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Organization",
+      "url": "https://microsoft.github.io/azure-iot-developer-kit",
+      "logo": "https://microsoft.github.io/azure-iot-developer-kit/assets/images/site-logo.png"
+    }
+  </script>
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context" : "http://schema.org",
+      "@type" : "Person",
+      "name" : "MXChip IoT DevKit",
+      "url" : "https://microsoft.github.io/azure-iot-developer-kit",
+      "sameAs" : null
+    }
+  </script>
+
+
+
+  <meta name="google-site-verification" content="n4bhlh177u2CIebyTNMalC9SNVqMY1HV4qD104d8X2g" />
+
+
+
+
+<!-- end SEO -->
+
+
+<link href="../../../feed.xml" type="application/atom+xml" rel="alternate" title="IoT DevKit Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="../../../assets/css/main.css">
+<link rel="stylesheet" href="../../../assets/css/extended/extended_main.css">
+
+<!--[if lte IE 9]>
+  <style>
+    /* old IE unsupported flexbox fixes */
+    .greedy-nav .site-title {
+      padding-right: 3em;
+    }
+    .greedy-nav button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+    }
+  </style>
+<![endif]-->
+
+<meta http-equiv="cleartype" content="on">
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+<link rel="apple-touch-icon" sizes="57x57" href="../../../assets/images/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="../../../assets/images/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="../../../assets/images/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="../../../assets/images/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="../../../assets/images/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="../../../assets/images/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="../../../assets/images/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="../../../assets/images/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../../assets/images/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../../assets/images/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../../../assets/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="../../../assets/images/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../../assets/images/favicon-16x16.png">
+<link rel="manifest" href="../../../assets/images/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/azure-iot-developer-kit/assets/images/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<!-- Google Optimize -->
+<style>.async-hide { opacity: 0 !important} </style>
+
+<!-- end custom head snippets -->
+  </head>
+
+  <body class="layout--single">
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+    <div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        <a class="site-title" href="../../../index.html">IoT DevKit</a>
+        <ul class="visible-links">
+          
+            
+            <li class="masthead__menu-item "><a href="https://aka.ms/iot-devkit">Get Started</a></li>
+          
+        </ul>
+        <button type="button" class="hidden" aria-haspopup="true">
+          <span class="navicon"></span>
+          <span class="screen-reader-text">Toggle Navigation</span>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+    
+  
+
+
+
+
+
+<div class="page__hero--overlay-full"
+ style="  background-image: url('../../../assets/images/projects-iothub.jpg');"
+>
+  
+  
+    <div class="wrapper" style="">
+
+      
+
+        <h1 class="page__title" itemprop="headline">
+          
+            Connect to Azure IoT Hub
+
+          
+          
+        </h1>
+        
+          <p class="page__lead">Collect and send temperature and humidity data from DevKit to Azure IoT Hub.
+</p>
+        
+        
+        <!---->
+        
+        <!-- Secondary actions -->
+        
+
+        
+      
+      
+
+    </div>
+  
+  
+  
+</div>
+
+
+
+
+
+<div id="main" role="main">
+  
+
+  <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+    <meta itemprop="headline" content="Connect to Azure IoT Hub">
+    <meta itemprop="description" content="Collect and send temperature and humidity data from DevKit to Azure IoT Hub.">
+    
+    <meta itemprop="dateModified" content="June 28, 2017">
+
+    <div class="page__inner-wrap">
+      
+
+      <section class="page__content" itemprop="text">
+        <aside class="sidebar__right">
+<nav class="toc">
+    <header><h4 class="nav__title"><i class="fa fa-columns"></i> On This Page</h4></header>
+<ul class="toc__menu" id="markdown-toc">
+  <li><a href="index.html#what-you-learn" id="markdown-toc-what-you-learn">What you learn</a></li>
+  <li><a href="index.html#what-you-need" id="markdown-toc-what-you-need">What you need</a></li>
+  <li><a href="index.html#use-visual-studio-code" id="markdown-toc-use-visual-studio-code">Use Visual Studio Code</a></li>
+  <li><a href="index.html#step-1-open-the-project-folder" id="markdown-toc-step-1-open-the-project-folder">Step 1. Open the project folder</a></li>
+  <li><a href="index.html#step-2-provision-azure-services" id="markdown-toc-step-2-provision-azure-services">Step 2. Provision Azure services</a></li>
+  <li><a href="index.html#step-3-build-and-upload-arduino-sketch" id="markdown-toc-step-3-build-and-upload-arduino-sketch">Step 3. Build and upload Arduino sketch</a></li>
+  <li><a href="index.html#test-the-project" id="markdown-toc-test-the-project">Test the project</a></li>
+  <li><a href="index.html#check-data-in-iot-hub" id="markdown-toc-check-data-in-iot-hub">Check data in IoT Hub</a></li>
+  <li><a href="index.html#problems-and-feedback" id="markdown-toc-problems-and-feedback">Problems and feedback</a></li>
+  <li><a href="index.html#next-steps" id="markdown-toc-next-steps">Next steps</a></li>
+</ul>
+
+  </nav>
+</aside>
+
+<p>In this project, you will create an Azure IoT Hub, connect IoT DevKit to it, and collect the temperature and humidity data from sensors and send the data to the IoT hub.</p>
+
+<h2 id="what-you-learn">What you learn</h2>
+
+<ul>
+  <li>How to create an IoT Hub and register a device for MXChip IoT DevKit.</li>
+  <li>How to collect sensor data by running a sample application on MXChip IoT DevKit.</li>
+  <li>How to send the sensor data to your IoT hub.</li>
+</ul>
+
+<h2 id="what-you-need">What you need</h2>
+
+<p>Finish the <a href="../../get-started/index.html">Getting Started Guide</a> to:</p>
+
+<ul>
+  <li>Have your IoT evKit connected to Wi-Fi</li>
+  <li>Prepare the development environment</li>
+</ul>
+
+<p>An active Azure subscription. If you do not have one, you can register via one of the methods:</p>
+
+<ul>
+  <li>Activate a <a href="https://azureinfo.microsoft.com/us-freetrial.html" target="_blank">free 30-day trial Microsoft Azure account</a></li>
+  <li>Claim your <a href="https://azure.microsoft.com/en-us/pricing/member-offers/msdn-benefits-details/" target="_blank">Azure credit</a> if you are MSDN or Visual Studio subscriber</li>
+</ul>
+
+<h2 id="use-visual-studio-code">Use Visual Studio Code</h2>
+
+<p>Visual Studio Code is the primary development tool for IoT DevKit. If this is the first time you learn about Visual Studio Code, there are a series of <a href="https://code.visualstudio.com/docs">Getting Started</a> tutorials are dedicated for it.</p>
+
+<h2 id="step-1-open-the-project-folder">Step 1. Open the project folder</h2>
+
+<h3 id="a-start-vs-code">A. Start VS Code</h3>
+
+<p>Make sure your IoT DevKit is not connected. Start VS Code first and connect the IoT DevKit to your computer. VS Code automatically finds the IoT DevKit and opens an introduction page:</p>
+
+<p><img src="../../../assets/images/mini-solution/vscode_start.png" alt="Introduction page" /></p>
+
+<p class="notice--warning"><strong>Notice:</strong> Occasionally, when you launch VS Code, you are prompted with error that cannot find Arduino IDE or related board package. Close VS Code, launch Arduino IDE once again, and VS Code should locate Arduino IDE path correctly.</p>
+
+<h3 id="b-open-the-arduino-examples-folder">B. Open the Arduino Examples folder</h3>
+
+<p>Expand left side <strong>ARDUINO EXAMPLES</strong> section, browse to <strong>Examples for MXCHIP AZ3166 &gt; AzureIoT</strong>, and select <strong>GetStarted</strong>. This will open a new VS Code window with project folder in it.</p>
+
+<p><img src="../../../assets/images/mini-solution/vscode_examples.png" alt="Arduino Examples tab" /></p>
+
+<p>If you happen to close the pane, you can reopen it. Use <code class="language-plaintext highlighter-rouge">Ctrl+Shift+P</code> (macOS: <code class="language-plaintext highlighter-rouge">Cmd+Shift+P</code>) to open the command palette, type <strong>Arduino</strong>, and then find and select <strong>Arduino: Examples</strong>.</p>
+
+<h2 id="step-2-provision-azure-services">Step 2. Provision Azure services</h2>
+
+<ol>
+  <li>
+    <p>In the solution window, run your task through <code class="language-plaintext highlighter-rouge">Ctrl+P</code> (macOS: <code class="language-plaintext highlighter-rouge">Cmd+P</code>) by entering <code class="language-plaintext highlighter-rouge">task cloud-provision</code>: In the VS Code terminal, an interactive command line guides you through provisioning the required Azure services:</p>
+
+    <p><img src="../../../assets/images/mini-solution/connect-iothub/cloud-provision.png" alt="Interactive command line" /></p>
+
+    <p class="notice--warning"><strong>Notice:</strong> If the page hangs in the loading status when trying to sign in to Azure, please check this <a href="../../faq/index.html#page-hangs-when-log-in-azure">FAQ steps</a> to solve it.</p>
+  </li>
+  <li>
+    <p>When a list of Azure subscriptions display in the terminal, use the <strong>up</strong> and <strong>down</strong> arrow keys to select the Azure subscription that you will use to provision the Azure IoT Hub. Then press <strong>Enter</strong> to confirm the selected subscription.</p>
+
+    <p><img src="../../../assets/images/mini-solution/connect-iothub/select-subscription.png" alt="Select Azure subscription" /></p>
+  </li>
+  <li>
+    <p>Provision IoT Hub</p>
+    <ul>
+      <li>
+        <p>If you’ve provisioned IoT Hub(s) before, a list of IoT Hubs associated with the subscription appears in the terminal. Please use <strong>up</strong> and <strong>down</strong> arrow keys to select one from the list and press <strong>Enter</strong> to confirm.</p>
+
+        <p><img src="../../../assets/images/mini-solution/connect-iothub/select-existing-iothub.png" alt="Select an existing IoT Hub" /></p>
+
+        <p><em>Select existing Free IoT Hub</em></p>
+
+        <p>Wait several minutes to finish ARM Template deployment and IoT Hub Device provision. Then press any key to exit the terminal.</p>
+
+        <p><img src="../../../assets/images/mini-solution/connect-iothub/select-iothub-done.png" alt="Select an existing IoT Hub done" /></p>
+
+        <p><em>Finish selecting IoT Hub</em></p>
+      </li>
+      <li>
+        <p>If you don’t have any IoT Hub, please follow the steps to create a free IoT Hub:</p>
+
+        <ul>
+          <li>
+            <p>Resource group provision:
+Use <strong>up</strong> and <strong>down</strong> arrow keys to choose a resource group you’ve created before or select <strong>Create New…</strong> to provision a new resource group. Complete the resource group provision according to the command line prompt.</p>
+
+            <p><img src="../../../assets/images/mini-solution/connect-iothub/select-or-create-resource-group.png" alt="Select or create Azure resource group" /></p>
+
+            <p>If you choose to create a new resource group:</p>
+            <ul>
+              <li>
+                <p>Use <strong>up</strong> and <strong>down</strong> arrow keys to select region for a new resource group provision, and then press <strong>Enter</strong> to confirm.</p>
+
+                <p><img src="../../../assets/images/mini-solution/connect-iothub/select-region-for-resource-group.png" alt="Select region for a new resource group" /></p>
+
+                <p><em>Select region for resource group provision</em></p>
+              </li>
+              <li>
+                <p>Input a name for new resource group.</p>
+
+                <p><img src="../../../assets/images/mini-solution/connect-iothub/input-name-for-resource-group.png" alt="Input name for resource group" /></p>
+
+                <p><em>Input a name for resource group provision</em></p>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <p>IoT Hub provision:</p>
+
+            <p>Enter a name for your new IoT Hub, and press <strong>Enter</strong> to confirm.</p>
+
+            <p><img src="../../../assets/images/mini-solution/connect-iothub/input-name-for-iothub.png" alt="Input a name for IoT Hub" /></p>
+
+            <p><em>Input a name for IoT Hub provision</em></p>
+
+            <p>Wait several minutes to finish ARM Template deployment and IoT Hub Device provision. Then press any key to exit the terminal.</p>
+
+            <p><img src="../../../assets/images/mini-solution/connect-iothub/provision-iothub-done.png" alt="Provision Azure IoT Hub done" /></p>
+
+            <p><em>Finish cloud provision</em></p>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="step-3-build-and-upload-arduino-sketch">Step 3. Build and upload Arduino sketch</h2>
+
+<div class="switcher">
+    <li class="switch_tag"> Platform: </li>
+    
+        <li class="switch_li"><a id="windows_switch" class="switch" href="index.html#windows"> Windows </a></li>
+    
+        <li class="switch_li"><a id="macos_switch" class="switch" href="index.html#macos"> macOS </a></li>
+    
+</div>
+
+<h4 id="windows">Windows</h4>
+
+<ol>
+  <li>
+    <p>Use <code class="language-plaintext highlighter-rouge">Ctrl+P</code> to run <code class="language-plaintext highlighter-rouge">task config-device-connection</code>.</p>
+  </li>
+  <li>
+    <p>The terminal will ask you whether you want to use connection string that retrieves from <code class="language-plaintext highlighter-rouge">task cloud-provision</code> step. You could also input your own device connection string by clicking ‘Create New…’</p>
+  </li>
+  <li>
+    <p>The terminal prompts you to enter configuration mode. To do so, hold down button A, then push and release the reset button. The screen displays the DevKit id and ‘Configuration’.
+  <img src="../../../assets/images/mini-solution/connect-iothub/config-device-connection.png" alt="Verification and upload of the Arduino sketch" /></p>
+  </li>
+  <li>
+    <p>After <code class="language-plaintext highlighter-rouge">task config-device-connection</code> finished, click <code class="language-plaintext highlighter-rouge">F1</code> to load VS Code commands and select <code class="language-plaintext highlighter-rouge">Arduino: Upload</code>, then VS Code starts verifying and uploading the Arduino sketch:
+  <img src="../../../assets/images/mini-solution/connect-iothub/arduino-upload.png" alt="Verification and upload of the Arduino sketch" /></p>
+  </li>
+</ol>
+
+<p>The DevKit reboots and starts running the code.</p>
+
+<p class="notice--warning"><strong>Notice:</strong> Occasionally, you get error “Error: AZ3166: Unknown package”. This is due to the board package index is not refreshed. Check this <a href="../../faq/index.html#development">FAQ steps</a> to solve it.</p>
+
+<h4 id="macos">macOS</h4>
+
+<ol>
+  <li>
+    <p>Put DevKit into configuration mode:
+  Hold down button A, then push and release the reset button. The screen displays ‘Configuration’.</p>
+  </li>
+  <li>
+    <p>Use <code class="language-plaintext highlighter-rouge">Cmd+P</code> to run <code class="language-plaintext highlighter-rouge">task config-device-connection</code>.</p>
+  </li>
+  <li>
+    <p>The terminal will ask you whether you want to use connection string that retrieves from <code class="language-plaintext highlighter-rouge">task cloud-provision</code> step. You could also input your own device connection string by clicking ‘Create New…’
+  <img src="../../../assets/images/mini-solution/connect-iothub/config-device-connection.png" alt="device-upload" /></p>
+  </li>
+  <li>
+    <p>After <code class="language-plaintext highlighter-rouge">task config-device-connection</code> finished, click <code class="language-plaintext highlighter-rouge">Cmd + shift + p</code> to load VS Code commands and select <code class="language-plaintext highlighter-rouge">Arduino: Upload</code>, then VS Code starts verifying and uploading the Arduino sketch:
+  <img src="../../../assets/images/mini-solution/connect-iothub/arduino-upload.png" alt="device-upload" /></p>
+  </li>
+</ol>
+
+<p>The DevKit reboots and starts running the code.</p>
+
+<p class="notice--warning"><strong>Notice:</strong> Occasionally, you get error “Error: AZ3166: Unknown package”. This is due to the board package index is not refreshed. Check this <a href="../../faq/index.html#development">FAQ steps</a> to solve it.</p>
+
+<h2 id="test-the-project">Test the project</h2>
+
+<p>In VS Code, following these steps to open and set up the Serial Monitor:</p>
+
+<ol>
+  <li>
+    <p>Click the <strong>COM[X]</strong> on the status bar to set the right COM port with <strong>STMicroelectronics</strong>:
+  <img src="../../../assets/images/mini-solution/connect-iothub/com-port.png" alt="com-port" /></p>
+  </li>
+  <li>
+    <p>Click power plug icon on the status bar to open the Serial Monitor:
+  <img src="../../../assets/images/mini-solution/connect-iothub/serial-monitor.png" alt="serial-monitor" /></p>
+  </li>
+</ol>
+
+<p>The sample application is running successfully when you see the following results:</p>
+
+<ul>
+  <li>The Serial Monitor displays the same information as the content in the screenshot below.</li>
+  <li>The LED on MXChip IoT DevKit is blinking.</li>
+</ul>
+
+<p><img src="../../../assets/images/mini-solution/connect-iothub/result-serial-output.png" alt="Final output in VS Code" /></p>
+
+<h2 id="check-data-in-iot-hub">Check data in IoT Hub</h2>
+
+<p>In VS Code, you can use <a href="https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.azure-iot-toolkit">Azure IoT Toolkit</a> to monitor device to cloud (D2C) messages in IoT Hub.</p>
+
+<ol>
+  <li>
+    <p>Log in Azure portal.</p>
+  </li>
+  <li>
+    <p>Find the IoT Hub you just created.
+  <img src="../../../assets/images/mini-solution/connect-iothub/azure-iot-hub-portal.png" alt="azure-portal-iot-hub" /></p>
+  </li>
+  <li>
+    <p>In the <strong>Shared access policies pane</strong>, click the <strong>iothubowner policy</strong>, and note down the Connection string of your IoT hub.
+  <img src="../../../assets/images/mini-solution/connect-iothub/azure-portal-conn-string.png" alt="azure-portal-iot-hub-conn-string" /></p>
+  </li>
+  <li>
+    <p>In VS Code, click the Extensions icon in the Activity Bar:
+  <img src="../../../assets/images/mini-solution/connect-iothub/vsc-extensions-icon.png" alt="vscode-extensions-icon" /></p>
+  </li>
+  <li>
+    <p>Search for <strong>Azure IoT Toolkit</strong> and install it.
+  <img src="../../../assets/images/mini-solution/connect-iothub/azure-iot-toolkit-install.png" alt="azure-iot-toolkit-installing" /></p>
+  </li>
+  <li>
+    <p>Expand <strong>IoT Hub Devices</strong> on the bottom left corner.
+  <img src="../../../assets/images/mini-solution/connect-iothub/azure-iot-toolkit-devices.png" alt="azure-iot-toolkit-iot-hub-devices" /></p>
+  </li>
+  <li>
+    <p>Click <strong>Set IoT Hub Connection String</strong> in context menu.
+  <img src="../../../assets/images/mini-solution/connect-iothub/azure-iot-toolkit-conn-string.png" alt="azure-iot-toolkit-iot-hub-conn-string" /></p>
+  </li>
+  <li>
+    <p>Click <strong>IoT: Start monitoring D2C message</strong> in context menu.</p>
+  </li>
+  <li>
+    <p>In <strong>OUTPUT</strong> pane, you can see the incoming D2C messages to IoT Hub.
+  <img src="../../../assets/images/mini-solution/connect-iothub/azure-iot-toolkit-console.png" alt="azure-iot-toolkit-output-console" /></p>
+  </li>
+</ol>
+
+<h2 id="problems-and-feedback">Problems and feedback</h2>
+
+<p>If you encounter problems, you can find <a href="../../faq/index.html">FAQs</a> if you encounter problems or reach out to us from the channels below.</p>
+
+<div class="feedback-btns">
+  <h3> Was this documentation helpful? </h3>
+  <button class="feedback-btn" onclick="$.feedbackDisappeared();$.feedbackButtonClick('happy-path', 'helpful');"> Yes </button>
+  <button class="feedback-btn" onclick="$.reportIssue();$.feedbackButtonClick('happy-path', 'notHelpful');"> No </button>
+</div>
+<div class="survey-monkey">
+  <iframe frameborder="0" scrolling="0" src="https://www.research.net/r/N9F3LCY?tutorial=happy-path&amp;step=happy-path"></iframe>
+</div>
+<div class="feedback-btn-fixed" onclick="$.reportIssuePopup('happy-path', 'happy-path');$.feedbackButtonClick('happy-path', 'issureReport');">
+  Report an Issue
+</div>
+
+<h2 id="next-steps">Next steps</h2>
+
+<p>You have successfully connected an MXChip IoT DevKit to your IoT hub, and you have sent the captured sensor data to your IoT hub.</p>
+
+<p>To continue getting started with Azure IoT Hub and to explore other IoT scenarios, see:</p>
+
+<ul>
+  <li><a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-explorer-cloud-device-messaging" target="_blank">Manage cloud device messaging with iothub-explorer</a></li>
+  <li><a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-store-data-in-azure-table-storage" target="_blank">Save IoT Hub messages to Azure data storage</a></li>
+  <li><a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-live-data-visualization-in-power-bi" target="_blank">Use Power BI to visualize real-time sensor data from Azure IoT Hub</a></li>
+  <li><a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-live-data-visualization-in-web-apps" target="_blank">Use Web Apps to visualize real-time sensor data from Azure IoT Hub</a></li>
+  <li><a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-weather-forecast-machine-learning" target="_blank">Weather forecast using the sensor data from your IoT hub in Azure Machine Learning</a></li>
+  <li><a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-device-management-iothub-explorer" target="_blank">Device management with iothub-explorer</a></li>
+  <li><a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-monitoring-notifications-with-azure-logic-apps" target="_blank">Remote monitoring and notifications with ​​Logic ​​Apps</a></li>
+</ul>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Updated:</strong> <time datetime="2017-06-28">June 28, 2017</time></p>
+        
+      </footer>
+
+      
+
+      
+    </div>
+
+    
+  </article>
+
+  
+  
+</div>
+
+
+    <div class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+          <div class="page__footer-follow">
+
+  <dl class="social-icons">
+    
+      <dt><strong>Follow:</strong></dt>
+    
+    
+    
+    
+      <dd><a href="http://github.com/Microsoft/azure-iot-developer-kit"><i class="fa fa-fw fa-github" aria-hidden="true"></i> GitHub</a></dd>
+    
+    
+    <dd><a href="../../../feed.xml"><i class="fa fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></dd>
+  </dl>
+</div>
+
+<div class="page__footer-copyright">Copyright &copy; 2021 Microsoft Corp.</div>
+      </footer>
+    </div>
+
+    <script src="../../../assets/js/main.min.js"></script>
+
+
+
+
+  <!-- start custom analytics snippet -->
+
+<!-- Google Optimize -->
+<script>(function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date;
+h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};
+(a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
+})(window,document.documentElement,'async-hide','dataLayer',4000,
+{'GTM-TMNC6P5':true});</script>
+
+<!-- Google Analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-98097460-1', 'auto');
+</script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MVB7TDR');</script>
+<!-- End Google Tag Manager -->
+
+<!-- LinkedIn Insight Tag -->
+<script type="text/javascript">
+_linkedin_data_partner_id = "118572";
+</script><script type="text/javascript">
+(function(){var s = document.getElementsByTagName("script")[0];
+var b = document.createElement("script");
+b.type = "text/javascript";b.async = true;
+b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+s.parentNode.insertBefore(b, s);})();
+</script>
+<noscript>
+<img height="1" width="1" style="display:none;" alt="" src="https://dc.ads.linkedin.com/collect/?pid=118572&fmt=gif" />
+</noscript>
+<!-- End LinkedIn Insight Tag -->
+
+<!-- end custom analytics snippet -->
+
+
+
+
+
+
+  </body>
+</html>

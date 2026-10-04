@@ -1,0 +1,655 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MXCHIP &mdash; Zephyr Project Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css@v=03e43079.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css@v=9edc463e.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css@v=4ae1632d.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/doxytooltip.css@v=07852572.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css@v=76b2166b.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css@v=9c3e77be.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css@v=1679f004.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css@v=95c83b7e.css" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="canonical" href="index.html" />
+      <script src="../../_static/jquery.js@v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js@v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js@v=830b4a95"></script>
+      <script src="../../_static/doctools.js@v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js@v=6ffebe34"></script>
+      <script src="../../_static/tippy/popper.min.js@v=f051b558"></script>
+      <script src="../../_static/tippy/tippy-bundle.umd.min.js@v=873d6056"></script>
+      <script src="../../_static/doxytooltip.js@v=ab77ca7a"></script>
+      <script src="../../_static/clipboard.min.js@v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js@v=761fddf6"></script>
+      <script src="../../_static/js/custom.js@v=4daa9211"></script>
+      <script>let toggleHintShow = 'Click to show';</script>
+      <script>let toggleHintHide = 'Click to hide';</script>
+      <script>let toggleOpenOnPrint = 'true';</script>
+      <script src="../../_static/togglebutton.js@v=b8b12719"></script>
+      <script src="../../_static/design-tabs.js@v=f930bc37"></script>
+      <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="https://docs.zephyrproject.org/latest/genindex.html" />
+    <link rel="search" title="Search" href="https://docs.zephyrproject.org/latest/search.html" />
+    <link rel="next" title="AZ3166 MXChip IoT DevKit" href="az3166_iotdevkit/doc/index.html" />
+    <link rel="prev" title="MuseLab nanoCH57x" href="https://docs.zephyrproject.org/latest/boards/muselab/nano_ch57x/doc/index.html" />
+  <meta name="color-scheme" content="dark light">
+  
+  <noscript id="dark-mode-toggle-stylesheets">
+    <link rel="stylesheet" href="../../_static/css/light.css" type="text/css" media="(prefers-color-scheme: light)"/>
+    <link rel="stylesheet" href="../../_static/css/dark.css" type="text/css" media="(prefers-color-scheme: dark)"/>
+  </noscript>
+  <script src="../../_static/js/dark-mode-toggle-stylesheets-loader.min.js"></script>
+  <script type="module" src="../../_static/js/dark-mode-toggle.min.mjs"></script>
+  
+  <script async src="https://widget.kapa.ai/kapa-widget.bundle.js"
+    data-website-id="231c2d18-d9cd-4296-bbcd-971a391dfe34"
+    data-color-scheme-selector="[data-theme='dark']"
+    data-search-mode-enabled="true"
+    data-project-name="Zephyr"
+    data-modal-title="Zephyr Chatbot"
+    data-view-mode="sidebar"
+    data-search-result-target="_self"
+    data-modal-open-on-command-k="true"
+    data-project-color="#7929d2"
+    data-project-logo="../../_static/images/logo.svg"
+    data-modal-logo-hidden="true"
+    data-user-analytics-cookie-enabled="false"
+    data-button-bg-color="transparent"
+    data-button-hover-bg-color="transparent"
+    data-button-box-shadow="none"
+    data-button-border="none"
+    data-button-width="6rem"
+    data-button-image-height="50px"
+    data-button-image-width="50px"
+    data-button-hover-animation-enabled="false"
+    data-button-image="../../_static/images/chatbot.webp"
+    data-button-text=" "
+    data-consent-required="true"
+    data-consent-screen-title="How does this AI Chat work?"
+    data-consent-screen-disclaimer="This AI assistant uses your questions to provide answers based
+      on the Zephyr documentation, source code, and GitHub issues and pull requests. Your questions
+      and interactions may be anonymously collected and analyzed to improve the quality of the
+      documentation by identifying areas for improvement. We don't collect any personally
+      identifiable information.
+      By clicking &quot;Accept&quot;, you consent to using this AI-powered feature and the
+      collection of your data. AI-generated responses may contain inaccuracies, please verify
+      important information with the official documentation."
+    data-mcp-enabled="true"
+    data-mcp-server-url="https://zephyrproject.mcp.kapa.ai"
+  ></script>
+  
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="https://docs.zephyrproject.org/latest/index.html">
+            
+              <img src="../../_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div class="search-container" role="search">
+  <form id="rtd-search-form" class="wy-form" action="https://docs.zephyrproject.org/latest/search.html" method="get">
+    <input type="search" name="q" placeholder="Search docs"
+           aria-label="Search docs" />
+    <span id="search-se-settings-icon" class="fa fa-gear" role="button" tabindex="0"
+          title="Search settings" aria-label="Search settings"
+          aria-haspopup="menu" aria-controls="search-se-menu" aria-expanded="false"
+          onclick="toggleSearchEngineSettingsMenu()">
+    </span>
+    <div id="search-se-menu" role="menu" aria-labelledby="search-se-settings-icon">
+      <ul>
+        <li id="search-se-menuitem-sphinx" role="menuitemradio" tabindex="-1"
+            aria-label="Built-in search" onclick="switchSearchEngine('sphinx')">
+          Built-in search <span class="fa fa-check"></span>
+        </li>
+        <li id="search-se-menuitem-google" role="menuitemradio" tabindex="-1"
+            aria-label="Google search" onclick="switchSearchEngine('google')">
+          Google search <span class="fa fa-check"></span>
+        </li>
+        <li id="search-se-menuitem-kapa" role="menuitemradio" tabindex="-1"
+            aria-label="Kapa AI search" onclick="switchSearchEngine('kapa')">
+          Kapa AI search <span class="fa fa-check"></span>
+        </li>
+      </ul>
+    </div>
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+<script>
+(function () {
+  var hasGoogleSearch = true;
+  var hasKapaSearch = true;
+
+  var form = document.getElementById("rtd-search-form");
+  var searchMenu = document.getElementById("search-se-menu");
+  var isBrowsingLatest = window.location.pathname.startsWith("/latest");
+  var preferenceKey = "search-se-" + (isBrowsingLatest ? "latest" : "default");
+  var query = new URLSearchParams(window.location.search).get("q");
+  var searchEngines = ["sphinx"];
+  if (hasGoogleSearch) {
+    searchEngines.push("google");
+  }
+  if (hasKapaSearch) {
+    searchEngines.push("kapa");
+  }
+
+  if (query !== null) {
+    form.q.value = query;
+    form.q.focus();
+  }
+
+  // Load the saved search preference. On "/latest", default to Google when enabled in this build;
+  // otherwise default to built-in Sphinx search.
+  var engine = localStorage.getItem(preferenceKey);
+  if (engine === null) {
+    engine = isBrowsingLatest && hasGoogleSearch ? "google" : "sphinx";
+  }
+  setActiveSearchEngine(engine);
+
+  setSearchEngineSettingsMenuVisibility = function (visible) {
+    searchMenu.style.display = visible ? "block" : "none";
+    document
+      .getElementById("search-se-settings-icon")
+      .setAttribute("aria-expanded", visible ? "true" : "false");
+  };
+  setSearchEngineSettingsMenuVisibility(false);
+
+  window.toggleSearchEngineSettingsMenu = function () {
+    isVisible = searchMenu.style.display === "block";
+    setSearchEngineSettingsMenuVisibility(!isVisible);
+  };
+
+  function setActiveSearchEngine(engine) {
+    if (searchEngines.indexOf(engine) === -1) {
+      engine = isBrowsingLatest && hasGoogleSearch ? "google" : "sphinx";
+    }
+
+    if (engine === "sphinx") {
+      form.action = "../../search.html";
+      form.q.placeholder = "Search docs (built-in search)";
+    } else if (hasGoogleSearch && engine === "google") {
+      form.action = "../../gsearch.html";
+      form.q.placeholder = "Search docs (powered by Google)";
+    } else if (hasKapaSearch && engine === "kapa") {
+      form.action = "../../search.html";
+      form.q.placeholder = "Search docs (Kapa AI)";
+    }
+
+    searchEngines.forEach(function (searchEngine) {
+      var menuItem = document.getElementById("search-se-menuitem-" + searchEngine);
+      if (!menuItem) {
+        return;
+      }
+      var isSelected = searchEngine === engine;
+      menuItem.classList.toggle("selected", isSelected);
+      menuItem.setAttribute("aria-checked", isSelected ? "true" : "false");
+    });
+  }
+
+  var openKapaSearch;
+  var openKapaSearchWhenReady;
+
+  if (hasKapaSearch) {
+    openKapaSearch = function (q) {
+      if (!window.Kapa || typeof window.Kapa.open !== "function") {
+        return false;
+      }
+      var text = (q != null && q !== "" ? String(q) : "").trim();
+      if (text !== "") {
+        window.Kapa.open({ mode: "search", query: text, submit: true });
+      } else {
+        window.Kapa.open({ mode: "search" });
+      }
+      return true;
+    };
+
+    openKapaSearchWhenReady = function (q, remainingAttempts) {
+      if (openKapaSearch(q) || remainingAttempts <= 0) {
+        return;
+      }
+      window.setTimeout(function () {
+        openKapaSearchWhenReady(q, remainingAttempts - 1);
+      }, 250);
+    };
+
+    form.addEventListener("submit", function (event) {
+      if (localStorage.getItem(preferenceKey) !== "kapa") {
+        return;
+      }
+      event.preventDefault();
+      openKapaSearchWhenReady(form.q.value, 40);
+    });
+  }
+
+  window.switchSearchEngine = function (engine) {
+    setActiveSearchEngine(engine);
+    localStorage.setItem(preferenceKey, engine);
+    setSearchEngineSettingsMenuVisibility(false);
+    form.q.focus();
+    if (form.q.value !== "") {
+      if (hasKapaSearch && engine === "kapa") {
+        openKapaSearchWhenReady(form.q.value, 40);
+      } else {
+        form.submit();
+      }
+    }
+  };
+
+  // Close the dropdown if the user clicks outside of it
+  window.onclick = function (event) {
+    if (!event.target.matches("#search-se-settings-icon")) {
+      if (searchMenu.style.display === "block") {
+        setSearchEngineSettingsMenuVisibility(false);
+      }
+    }
+  };
+
+  document.addEventListener("keydown", function (event) {
+    if(searchMenu.style.display === "none") return;
+
+    let menuItems = document.querySelectorAll('[role="menuitemradio"]');
+    let currentIndex = Array.from(menuItems).findIndex((item) => item === document.activeElement);
+
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      let nextIndex = event.key === "ArrowDown" ? currentIndex + 1 : currentIndex - 1;
+
+      if (nextIndex >= menuItems.length) nextIndex = 0;
+      if (nextIndex < 0) nextIndex = menuItems.length - 1;
+
+      menuItems[nextIndex].focus();
+      event.preventDefault();
+    } else if (event.key === "Enter") {
+      let activeItem = document.activeElement;
+      if (activeItem && activeItem.getAttribute("role") === "menuitemradio") {
+        activeItem.click();
+        event.preventDefault();
+      }
+    }
+  });
+})();
+</script>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  <div data-nosnippet>
+    
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Zephyr Project</span>
+      v: latest
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Document Release Versions</dt>
+        
+          <dd><a href="https://docs.zephyrproject.org/">latest</a></dd>
+        
+          <dd><a href="https://docs.zephyrproject.org/4.4.0/">4.4.0</a></dd>
+        
+          <dd><a href="https://docs.zephyrproject.org/4.3.0/">4.3.0</a></dd>
+        
+          <dd><a href="https://docs.zephyrproject.org/3.7.0/">3.7.0 (LTS)</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>Downloads</dt>
+        
+        <dd><a href="https://docs.zephyrproject.org/latest/zephyr.pdf">PDF</a></dd>
+      </dl>
+      <dl>
+        <dt>zephyrproject.org Links</dt>
+          <dd>
+            <a href="https://www.zephyrproject.org/">Project Home</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/zephyrproject-rtos/sdk-ng/releases">SDK</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/zephyrproject-rtos/zephyr/releases">Releases</a>
+          </dd>
+      </dl>
+    </div>
+  </div>
+    
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/introduction/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/develop/index.html">Developing with Zephyr</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/kernel/index.html">Kernel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/services/index.html">Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/build/index.html">Build and Configuration Systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/hardware/index.html">Hardware Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/contribute/index.html">Contributing to Zephyr</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/project/index.html">Project and Governance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/security/index.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/safety/index.html">Safety</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/samples/index.html">Samples and Demos</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/index.html">Supported Boards and Shields</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/01space/index.html">01space</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/96boards/index.html">96Boards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/aconno/index.html">Aconno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/acrn/index.html">Project ACRN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/actinius/index.html">Actinius</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/adafruit/index.html">Adafruit Industries LLC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/adi/index.html">Analog Devices, Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/aesc/index.html">Aesc Silicon</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/aithinker/index.html">Ai-Thinker Co.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/alientek/index.html">Alientek</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/alif/index.html">Alif Semiconductor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ambiq/index.html">Ambiq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/amd/index.html">Advanced Micro Devices (AMD), Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/andestech/index.html">Andes Technology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/antmicro/index.html">Antmicro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/arduino/index.html">Arduino</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/arm/index.html">ARM Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/armfly/index.html">Armfly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/aspeed/index.html">ASPEED Technology Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/atmarktechno/index.html">Atmark Techno</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/atmel/index.html">Atmel Corporation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/barth/index.html">Barth Elektronik GmbH</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/bbc/index.html">BBC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/bcdevices/index.html">Blue Clover Devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/beagle/index.html">BeagleBoard.org Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/bflb/index.html">Bouffalo Lab Intelligent Technology (Nanjing) Co., Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/blackberry/index.html">BlackBerry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/bliiot/index.html">BLIIoT Technology Co., Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/blues/index.html">Blues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/brcm/index.html">Broadcom Corporation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/bytesatwork/index.html">bytesatwork</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/canmodule/index.html">CAN-Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/cdac/index.html">C-DAC (Centre for Development of Advanced Computing)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/cdns/index.html">Cadence Design Systems Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/circuitdojo/index.html">Circuit Dojo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/cirrus/index.html">Cirrus Logic, Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/contextualelectronics/index.html">Contextual Electronics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/coredevices/index.html">Core Devices LLC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/croxel/index.html">Croxel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ct/index.html">CTHINGS.CO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/cypress/index.html">Cypress</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/cytron/index.html">Cytron</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/dfrobot/index.html">DFRobot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/dh/index.html">DH electronics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/digilent/index.html">Digilent, Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/doiting/index.html">Doctors of Intelligence &amp; Technology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/dptechnics/index.html">DPTechnics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/dragino/index.html">Dragino</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ebyte/index.html">Chengdu Ebyte Electronic Technology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/efinix/index.html">Efinix, Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/egis/index.html">Egis Technology Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/elan/index.html">Elan Microelectronics Corp.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/electronut/index.html">Electronut Labs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/element14/index.html">Element 14</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/embedsky/index.html">Guangdong Embedsky Technology Co., Ltd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/emtrion/index.html">emtrion GmbH</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ene/index.html">ENE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/enjoydigital/index.html">EnjoyDigital</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/espressif/index.html">Espressif</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/eurovibes/index.html">Eurovibes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ezurio/index.html">Ezurio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/fanke/index.html">Fanke</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/firefly/index.html">Firefly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/flysky/index.html">FlySky</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/fobe/index.html">FoBE Studio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/framework/index.html">Framework Computer Inc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/franzininho/index.html">Franzininho</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/fysetc/index.html">FYSETC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/gaisler/index.html">Gaisler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/gardena/index.html">GARDENA GmbH</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/gd/index.html">GigaDevice Semiconductor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/google/index.html">Google, Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/hardkernel/index.html">HardKernel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/heimann/index.html">Heimann Sensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/heltec/index.html">Heltec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/holyiot/index.html">Shenzhen Holyiot Technology Co.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/iar/index.html">IAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/infineon/index.html">Infineon Technologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/innblue/index.html">innblue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/intel/index.html">Intel Corporation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ite/index.html">ITE Tech. Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/jhoinrch/index.html">Jhoinrch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/jlc/index.html">Shenzhen JLC Technology Group Co., Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/kaga-fei/index.html">KAGA-FEI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/khadas/index.html">Khadas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/kincony/index.html">Kincony</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/kosagi/index.html">Kosagi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/kws/index.html">KWS Computersysteme Gmbh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/lilygo/index.html">Lilygo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/longan/index.html">Longan Labs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/lowrisc/index.html">lowRISC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/luatos/index.html">Luatos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/luckfox/index.html">Shenzhen Luckfox Technology Co., Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/m5stack/index.html">M5Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/madmachine/index.html">Mad Machine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/makerbase/index.html">Makerbase</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/makerdiary/index.html">Maker Diary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/makerfabs/index.html">Makerfabs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/mediatek/index.html">MediaTek Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/microchip/index.html">Microchip Technology Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/mikroe/index.html">MikroElektronika d.o.o.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/muselab/index.html">Muselab</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="index.html#">MXCHIP</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="az3166_iotdevkit/doc/index.html">AZ3166 MXChip IoT DevKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/native/index.html">POSIX/Native Boards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/nordic/index.html">Nordic Semiconductor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/norik/index.html">Norik Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/nucode/index.html">NUCODE Co., Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/nuvoton/index.html">Nuvoton Technology Corporation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/nxp/index.html">NXP Semiconductors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/oct/index.html">Octavo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/olimex/index.html">OLIMEX Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/openhwgroup/index.html">OpenHW Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/openisa/index.html">OpenISA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/others/index.html">Other and unknown vendors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/panasonic/index.html">Panasonic Corporation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/particle/index.html">Particle Industries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/pcbcupid/index.html">PCB Cupid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/peregrine/index.html">Peregrine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/phytec/index.html">PHYTEC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/pimoroni/index.html">Pimoroni Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/pine64/index.html">Pine64</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/pjrc/index.html">PJRC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/qcom/index.html">Qualcomm Technologies, Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/qemu/index.html">QEMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/qorvo/index.html">Qorvo, Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/quicklogic/index.html">QuickLogic Corp.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/radxa/index.html">Radxa</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/rakwireless/index.html">RAKwireless</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/raspberrypi/index.html">Raspberry Pi Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/raytac/index.html">Raytac Corporation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/realtek/index.html">Realtek</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/renesas/index.html">Renesas Electronics Corporation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/renode/index.html">Renode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/retronix/index.html">Retronix Technology Inc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ronoth/index.html">Ronoth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ruiside/index.html">Ruiside</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ruuvi/index.html">Ruuvi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/sc/index.html">Space Cubics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/seagate/index.html">Seagate Technology PLC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/seco/index.html">SECO SpA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/seeed/index.html">Seeed Technology Co., Ltd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/segger/index.html">SEGGER Microcontroller GmbH</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/sensry/index.html">Sensry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/shakti/index.html">SHAKTI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/shields/index.html">Shields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/sifive/index.html">SiFive</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/sifli/index.html">SiFli Technologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/silabs/index.html">Silicon Labs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/sipeed/index.html">Sipeed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/snps/index.html">Synopsys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/solderedelectronics/index.html">Soldered Electronics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/sparkfun/index.html">SparkFun Electronics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/st/index.html">STMicroelectronics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/starfive/index.html">StarFive</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/steelseries/index.html">SteelSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/syna/index.html">Synaptics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/t3gemstone/index.html">T3 Gemstone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/tdk/index.html">TDK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/technexion/index.html">TECHNEXION</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/telink/index.html">Telink Semiconductor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/thirdreality/index.html">Third Reality, Inc.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/ti/index.html">Texas Instruments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/toradex/index.html">Toradex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/trenz/index.html">Trenz Electronic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/tuya/index.html">Tuya</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/u-blox/index.html">u-blox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/udoo/index.html">UDOO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/uiap/index.html">Umeta &amp; Ikki Automotive Parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/up-bridge-the-gap/index.html">UP Bridge the Gap.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/variscite/index.html">Variscite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/vcc-gnd/index.html">VCC-GND</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/vicharak/index.html">Vicharak</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/viewe/index.html">VIEWE Display Co., Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/vngiotlab/index.html">VNG Corporation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/waiken-smart/index.html">Dongguan Waiken-Smart Technology Co., Ltd.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/waveshare/index.html">Waveshare Electronics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/wch/index.html">WCH - Nanjing Qinheng Microelectronics Co.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/we/index.html">Würth Elektronik</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/weact/index.html">WeAct Studio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/wemos/index.html">Wemos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/witte/index.html">Witte</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/wiznet/index.html">WIZnet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/xen/index.html">Xen Hypervisor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.zephyrproject.org/latest/boards/xunlong/index.html">Shenzhen Xunlong Software Co., Limited</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.zephyrproject.org/latest/releases/index.html">Releases</a></li>
+</ul>
+
+    
+    <div class="toctree-wrapper compound">
+      <p class="caption"><span class="caption-text">Reference</span></p>
+      <ul>
+        
+        <li class="toctree-l1">
+          <a class="reference internal" href="https://docs.zephyrproject.org/latest/doxygen/html/index.html">API</a>
+        </li>
+        
+        <li class="toctree-l1">
+          <a class="reference internal" href="https://docs.zephyrproject.org/latest/kconfig.html">Kconfig Options</a>
+        </li>
+        
+        <li class="toctree-l1">
+          <a class="reference internal" href="https://docs.zephyrproject.org/latest/build/dts/api/bindings.html">Devicetree Bindings</a>
+        </li>
+        
+        <li class="toctree-l1">
+          <a class="reference internal" href="https://docs.zephyrproject.org/latest/build/cmake-ref/index.html">CMake modules</a>
+        </li>
+        
+        <li class="toctree-l1">
+          <a class="reference internal" href="https://docs.zephyrproject.org/latest/develop/manifest/index.html">West Projects</a>
+        </li>
+        
+        <li class="toctree-l1">
+          <a class="reference internal" href="https://docs.zephyrproject.org/latest/glossary.html">Glossary</a>
+        </li>
+        
+      </ul>
+    </div>
+    
+  </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="https://docs.zephyrproject.org/latest/index.html">Zephyr Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+  <!-- Docs / Latest -->
+  
+  
+
+  <li><a href="https://docs.zephyrproject.org/latest/index.html">Docs / Latest</a> &raquo;</li>
+  
+     <li><a href="https://docs.zephyrproject.org/latest/boards/index.html">Supported Boards and Shields</a> &raquo;</li>
+  
+  <li>MXCHIP</li>
+
+
+  <li class="wy-breadcrumbs-aside">
+    <dark-mode-toggle id="dark-mode-toggle" appearance="three-way" permanent="true"/>
+  </li>
+  <li class="wy-breadcrumbs-aside">
+      
+      
+        <a href="https://github.com/zephyrproject-rtos/zephyr/blob/main//boards/mxchip/index.rst" class="fa fa-github"> Open on GitHub</a>
+      
+        <a href="https://github.com/zephyrproject-rtos/zephyr/issues/new?template=001_bug_report.yml&title=doc%3A+Documentation+issue+in+%27boards%2Fmxchip%2Findex%27&labels=bug%2Carea%3A+Documentation%2Carea%3A+Boards%2FSoCs&env=-+Page%3A+boards%2Fmxchip%2Findex%0A-+Version%3A+main%0A-+SHA-1%3A+8dc3f856229ce083c956aa301c31a23e65bd8cd8&context=This+issue+was+reported+from+the+online+documentation+page+using+the+%27Report+an+issue%27+button." class="fa fa-bug">
+          Report an issue with this page
+        </a>
+      
+    
+  </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+  
+  
+           <div itemprop="articleBody">
+             
+  <section id="mxchip">
+<span id="boards-mxchip"></span><h1>MXCHIP<a class="headerlink" href="index.html#mxchip" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="az3166_iotdevkit/doc/index.html">AZ3166 MXChip IoT DevKit</a></li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+<p>
+  &#169; Copyright 2015-2026 Zephyr Project members and individual contributors.
+  <div class="lastupdated">
+    Last generated: Oct 03, 2026.
+    Last source update: Sep 14, 2022.
+  </div></p>
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

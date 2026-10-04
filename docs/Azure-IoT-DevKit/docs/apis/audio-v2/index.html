@@ -1,0 +1,1734 @@
+<!doctype html>
+
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin SEO -->
+
+
+
+
+
+
+
+
+
+<title>Audio - IoT DevKit</title>
+
+
+
+
+<meta name="description" content="The Audio module for AZ3166">
+
+
+
+
+<meta name="author" content="MXChip IoT DevKit">
+
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="IoT DevKit">
+<meta property="og:title" content="Audio">
+
+
+  <link rel="canonical" href="index.html">
+  <meta property="og:url" content="https://microsoft.github.io/azure-iot-developer-kit/docs/apis/audio-v2/">
+
+
+
+  <meta property="og:description" content="The Audio module for AZ3166">
+
+
+
+
+
+  
+
+  
+
+
+
+  <meta property="og:image" content="https://microsoft.github.io/azure-iot-developer-kit/assets/images/site-logo.png">
+
+
+
+
+
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Organization",
+      "url": "https://microsoft.github.io/azure-iot-developer-kit",
+      "logo": "https://microsoft.github.io/azure-iot-developer-kit/assets/images/site-logo.png"
+    }
+  </script>
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context" : "http://schema.org",
+      "@type" : "Person",
+      "name" : "MXChip IoT DevKit",
+      "url" : "https://microsoft.github.io/azure-iot-developer-kit",
+      "sameAs" : null
+    }
+  </script>
+
+
+
+  <meta name="google-site-verification" content="n4bhlh177u2CIebyTNMalC9SNVqMY1HV4qD104d8X2g" />
+
+
+
+
+<!-- end SEO -->
+
+
+<link href="../../../feed.xml" type="application/atom+xml" rel="alternate" title="IoT DevKit Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="../../../assets/css/main.css">
+<link rel="stylesheet" href="../../../assets/css/extended/extended_main.css">
+
+<!--[if lte IE 9]>
+  <style>
+    /* old IE unsupported flexbox fixes */
+    .greedy-nav .site-title {
+      padding-right: 3em;
+    }
+    .greedy-nav button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+    }
+  </style>
+<![endif]-->
+
+<meta http-equiv="cleartype" content="on">
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+<link rel="apple-touch-icon" sizes="57x57" href="../../../assets/images/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="../../../assets/images/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="../../../assets/images/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="../../../assets/images/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="../../../assets/images/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="../../../assets/images/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="../../../assets/images/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="../../../assets/images/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../../assets/images/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../../assets/images/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../../../assets/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="../../../assets/images/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../../assets/images/favicon-16x16.png">
+<link rel="manifest" href="../../../assets/images/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/azure-iot-developer-kit/assets/images/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<!-- Google Optimize -->
+<style>.async-hide { opacity: 0 !important} </style>
+
+<!-- end custom head snippets -->
+  </head>
+
+  <body class="layout--single">
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+    <div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        <a class="site-title" href="../../../index.html">IoT DevKit</a>
+        <ul class="visible-links">
+          
+            
+            <li class="masthead__menu-item "><a href="https://aka.ms/iot-devkit">Get Started</a></li>
+          
+        </ul>
+        <button type="button" class="hidden" aria-haspopup="true">
+          <span class="navicon"></span>
+          <span class="screen-reader-text">Toggle Navigation</span>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+    
+
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+  
+    
+      
+      
+      
+    
+    
+      
+
+<nav class="nav__list">
+  
+  <input id="ac-toc" name="accordion-toc" type="checkbox" />
+  <label for="ac-toc">Toggle Menu</label>
+  <ul class="nav__items">
+    
+      <li>
+        
+          
+          
+
+          <a href="../../projects/index.html"><span class="nav__sub-title">Projects Catalog</span></a>
+        
+
+        
+      </li>
+    
+      <li>
+        
+          <span class="nav__sub-title">How-to Guides</span>
+        
+
+        
+        <ul>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../firmware-upgrading/index.html" class="">Firmware upgrading</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../use-configuration-mode/index.html" class="">Use configure mode</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../understand-security-chip/index.html" class="">Understand security chip</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../disable-data-collection/index.html" class="">Disable data collection</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../serial-communications/index.html" class="">Serial communications</a></li>
+          
+        </ul>
+        
+      </li>
+    
+      <li>
+        
+          
+          
+
+          <a href="../../faq/index.html"><span class="nav__sub-title">FAQ</span></a>
+        
+
+        
+      </li>
+    
+      <li>
+        
+          <span class="nav__sub-title">API Reference</span>
+        
+
+        
+        <ul>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../arduino-language-reference/index.html" class="">Arduino</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="index.html" class="active">AudioV2</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../display/index.html" class="">Display</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../eeprom-interface/index.html" class="">EEPROMInterface</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../file-system/index.html" class="">FileSystem</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../http-client/index.html" class="">HTTP Client</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../external-interrupts/index.html" class="">External Interrupts</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../irda/index.html" class="">IrDA</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../led/index.html" class="">LED</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../memory-pool/index.html" class="">MemoryPool</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../memory-status/index.html" class="">Memory Status</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../mutex/index.html" class="">Mutex</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../ota/index.html" class="">OTA Programing</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../queue/index.html" class="">Queue</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../semaphore/index.html" class="">Semaphore</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../hts221/index.html" class="">Sensor: Humidity & Temperature (HTS221)</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../lis2mdl/index.html" class="">Sensor: Magnetic (LIS2MDL)</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../lps22hb/index.html" class="">Sensor: Pressure  (LPS22HB)</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../lsm6dsl/index.html" class="">Sensor: Accelerometer & Gyroscope (LSM6DSL)</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../system-function/index.html" class="">System Function</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../thread/index.html" class="">Thread</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../timer/index.html" class="">Timer</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../watchdog-timer/index.html" class="">Watchdog Timer</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../websocket-client/index.html" class="">WebSocket Client</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../wifi/index.html" class="">WiFi</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../wifi-client/index.html" class="">WiFiClient</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../wifi-server/index.html" class="">WiFiServer</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../wifi-udp/index.html" class="">WiFiUDP</a></li>
+          
+        </ul>
+        
+      </li>
+    
+  </ul>
+</nav>
+    
+  
+  </div>
+
+
+  <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+    <meta itemprop="headline" content="Audio">
+    <meta itemprop="description" content="The Audio module for AZ3166">
+    
+    <meta itemprop="dateModified" content="November 22, 2017">
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 class="page__title" itemprop="headline">Audio
+</h1>
+          
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        <p>Audio class version 2. There are two ways to use <code class="language-plaintext highlighter-rouge">AudioClass</code> recording and playing music : by callback or by WAV format data. In callback scenario, it records / plays audio data to / from a 512 bytes data inside audio class. Application can control the data on play callback called or read the data on record callback called. In WAV format data scenario, it records / plays audio data to / from WAV format data.</p>
+
+<h2 id="assembly">Assembly</h2>
+
+<p>AudioClassV2.h</p>
+
+<h2 id="summary">Summary</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Types</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><a href="index.html#waveheader">WaveHeader</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#audio_state_typedef">AUDIO_STATE_TypeDef</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Common methods</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><a href="index.html#getinstance">getInstance</a> - <code class="language-plaintext highlighter-rouge">static AudioClass&amp; getInstance()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#format">format</a> - <code class="language-plaintext highlighter-rouge">void format(unsigned int sampleRate, unsigned short sampleBitLength)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#stop">stop</a> - <code class="language-plaintext highlighter-rouge">void stop()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#getaudiostate">getAudioState</a> - <code class="language-plaintext highlighter-rouge">int getAudioState()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#setVolume">setVolume</a> - <code class="language-plaintext highlighter-rouge">bool setVolume(uint8_t volume)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#readRegister">readRegister</a> - <code class="language-plaintext highlighter-rouge">uint16_t readRegister(uint16_t registerAddress)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#writeRegister">writeRegister</a> - <code class="language-plaintext highlighter-rouge">void writeRegister(uint16_t registerAddress, uint16_t value)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#enableLevelControl">enableLevelControl</a> - <code class="language-plaintext highlighter-rouge">void enableLevelControl(uint8_t maxGain, uint8_t minGain)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#disableLevelControl">disableLevelControl</a> - <code class="language-plaintext highlighter-rouge">void disableLevelControl()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#setPGAGain">setPGAGain</a> - <code class="language-plaintext highlighter-rouge">void setPGAGain(uint8_t gain)</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Callback scenario methods</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><a href="index.html#startrecord">startRecord</a> - <code class="language-plaintext highlighter-rouge">int startRecord(callbackFunc func = NULL)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#startplay">startPlay</a> - <code class="language-plaintext highlighter-rouge">int startPlay(callbackFunc func = NULL)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#readfromrecordbuffer">readFromRecordBuffer</a> - <code class="language-plaintext highlighter-rouge">int readFromRecordBuffer(char* buffer, int length)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#writetoplaybuffer">writeToPlayBuffer</a> - <code class="language-plaintext highlighter-rouge">int writeToPlayBuffer(char* buffer, int length)</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">WAV format data scenario methods</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><a href="index.html#startrecord-1">startRecord</a> - <code class="language-plaintext highlighter-rouge">int startRecord(char* audioBuffer, int size)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#startplay-1">startPlay</a> - <code class="language-plaintext highlighter-rouge">int startPlay(char* audioBuffer, int size)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#getcurrentsize">getCurrentSize</a> - <code class="language-plaintext highlighter-rouge">int getCurrentSize()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#converttomono">convertToMono</a> - <code class="language-plaintext highlighter-rouge">int convertToMono(char* audioBuffer, int size, int sampleBitLength)</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="types">Types</h2>
+
+<h3 id="waveheader">WaveHeader</h3>
+
+<blockquote>
+  <p>Wave header structure.</p>
+</blockquote>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">typedef</span> <span class="k">struct</span>
+<span class="p">{</span>
+    <span class="kt">char</span> <span class="n">RIFF_marker</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+    <span class="kt">uint32_t</span> <span class="n">file_size</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="n">filetype_header</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+    <span class="kt">char</span> <span class="n">format_marker</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+    <span class="kt">uint32_t</span> <span class="n">data_header_length</span><span class="p">;</span>
+    <span class="kt">uint16_t</span> <span class="n">format_type</span><span class="p">;</span>
+    <span class="kt">uint16_t</span> <span class="n">number_of_channels</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">sample_rate</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">bytes_per_second</span><span class="p">;</span>
+    <span class="kt">uint16_t</span> <span class="n">bytes_per_frame</span><span class="p">;</span>
+    <span class="kt">uint16_t</span> <span class="n">bits_per_sample</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="n">data_chunk_id</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+    <span class="kt">uint32_t</span> <span class="n">data_chunk_size</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">WaveHeader</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="audio_state_typedef">AUDIO_STATE_TypeDef</h3>
+
+<blockquote>
+  <p>Enum for audio status</p>
+</blockquote>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">typedef</span> <span class="k">enum</span> 
+<span class="p">{</span>
+  <span class="n">AUDIO_STATE_IDLE</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="n">AUDIO_STATE_INIT</span><span class="p">,</span>
+  <span class="n">AUDIO_STATE_RECORDING</span><span class="p">,</span>
+  <span class="n">AUDIO_STATE_PLAYING</span><span class="p">,</span>
+  <span class="n">AUDIO_STATE_RECORDING_FINISH</span><span class="p">,</span>
+  <span class="n">AUDIO_STATE_PLAYING_FINISH</span>
+<span class="p">}</span> <span class="n">AUDIO_STATE_TypeDef</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="common-methods">Common methods</h2>
+
+<h2 id="getinstance">getInstance</h2>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="n">AudioClass</span><span class="o">&amp;</span> <span class="n">getInstance</span><span class="p">()</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Get the single instance of AudioClass.</p>
+
+  <h4 id="parameters">Parameters</h4>
+
+  <p>None.</p>
+
+  <h4 id="return-value">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">AudioClass&amp;</td>
+        <td style="text-align: left">Reference to the single instance.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="format">format</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="n">format</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sampleRate</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">short</span> <span class="n">sampleBitLength</span><span class="p">)</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Configure the audio data format.</p>
+
+  <h4 id="parameters-1">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">unsigned int</td>
+        <td style="text-align: left">sampleRate</td>
+        <td style="text-align: left">Sample rate.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">unsigned short</td>
+        <td style="text-align: left">sampleBitLength</td>
+        <td style="text-align: left">Sample bit length.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-1">Return value</h4>
+
+  <p><code class="language-plaintext highlighter-rouge">void</code></p>
+</blockquote>
+
+<h3 id="stop">stop</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="n">stop</span><span class="p">()</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Stop audio data transmition.</p>
+
+  <h4 id="parameters-2">Parameters</h4>
+
+  <p>None.</p>
+
+  <h4 id="return-value-2">Return value</h4>
+
+  <p><code class="language-plaintext highlighter-rouge">void</code></p>
+</blockquote>
+
+<h3 id="getaudiostate">getAudioState</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">getAudioState</span><span class="p">();</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Get status of the audio driver. Please use this API to query whether the playing/recoding process is completed.</p>
+
+  <h4 id="parameters-3">Parameters</h4>
+
+  <p>None.</p>
+
+  <h4 id="return-value-3">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Value of AUDIO_STATE_TypeDef.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="setvolume">setVolume</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> bool setVolume(uint8_t volume)
+</code></pre></div></div>
+
+<blockquote>
+  <p>Controls the current audio volume level.</p>
+
+  <h4 id="parameters-4">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">uint8_t</td>
+        <td style="text-align: left">volume</td>
+        <td style="text-align: left">Volume level to be set in percentage from 0% to 100% (0 for Mute and 100 for Max volume level).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-4">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">bool</td>
+        <td style="text-align: left">returns true on success, or false on failure</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="readregister">readRegister</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>uint16_t readRegister(uint16_t registerAddress)
+</code></pre></div></div>
+
+<blockquote>
+  <p>Read the given nau88c10 register.</p>
+
+  <h4 id="parameters-5">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">uint16_t</td>
+        <td style="text-align: left">registerAddress</td>
+        <td style="text-align: left">Register address</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-5">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">uint16_t</td>
+        <td style="text-align: left">the integer value in the register</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="writeregister">writeRegister</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void writeRegister(uint16_t registerAddress, uint16_t value)
+</code></pre></div></div>
+
+<blockquote>
+  <p>Write the given nau88c10 register.</p>
+
+  <h4 id="parameters-6">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">uint16_t</td>
+        <td style="text-align: left">registerAddress</td>
+        <td style="text-align: left">Register address</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">uint16_t</td>
+        <td style="text-align: left">value</td>
+        <td style="text-align: left">The value to write</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-6">Return value</h4>
+
+  <p>None</p>
+</blockquote>
+
+<h3 id="enablelevelcontrol">enableLevelControl</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void enableLevelControl(uint8_t maxGain, uint8_t minGain)
+</code></pre></div></div>
+
+<blockquote>
+  <p>Enable automatic level control with given min and max gain as per ALCMXGAIN and ALCMNGAIN (register 0x20).</p>
+
+  <h4 id="parameters-7">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">uint8_t</td>
+        <td style="text-align: left">maxGain</td>
+        <td style="text-align: left">A value between 0 and 7</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">uint8_t</td>
+        <td style="text-align: left">minGain</td>
+        <td style="text-align: left">A value between 0 and 7</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-7">Return value</h4>
+
+  <p>None</p>
+</blockquote>
+
+<h3 id="disablelevelcontrol">disableLevelControl</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void disableLevelControl()
+</code></pre></div></div>
+
+<blockquote>
+  <p>Disable automatic level control (register 0x20).</p>
+
+  <h4 id="parameters-8">Parameters</h4>
+  <p>None</p>
+
+  <h4 id="return-value-8">Return value</h4>
+
+  <p>None</p>
+</blockquote>
+
+<h3 id="setpgagain">setPGAGain</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void setPGAGain(uint8_t gain)
+</code></pre></div></div>
+
+<blockquote>
+  <p>set the Programmable Gain Amplifier directly (this will disable automatic level control).</p>
+
+  <h4 id="parameters-9">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">uint8_t</td>
+        <td style="text-align: left">gain</td>
+        <td style="text-align: left">A value between 0 and 0x3F</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-9">Return value</h4>
+
+  <p>None</p>
+</blockquote>
+
+<h2 id="callback-scenario-methods">Callback scenario methods</h2>
+<h3 id="startrecord">startRecord</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">startRecord</span><span class="p">(</span><span class="n">callbackFunc</span> <span class="n">func</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Start recording audio data and call func after every 512 bytes buffer was recorded.</p>
+
+  <h4 id="parameters-10">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">callbackFunc</td>
+        <td style="text-align: left">func</td>
+        <td style="text-align: left">Record callback function.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-10">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Result code, 0 (AUDIO_OK) in case of success, error code otherwise.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="startplay">startPlay</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">startPlay</span><span class="p">(</span><span class="n">callbackFunc</span> <span class="n">func</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Start playing audio data and call func after every 512 bytes buffer was played.</p>
+
+  <h4 id="parameters-11">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">callbackFunc</td>
+        <td style="text-align: left">func</td>
+        <td style="text-align: left">Play callback function.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-11">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Result code, 0 (AUDIO_OK) in case of success, error code otherwise.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="readfromrecordbuffer">readFromRecordBuffer</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">readFromRecordBuffer</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Read recorded data from buffer inside AudioClass to given buffer.</p>
+
+  <h4 id="parameters-12">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">char *</td>
+        <td style="text-align: left">buffer</td>
+        <td style="text-align: left">Pointer to write recorded data to.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">size</td>
+        <td style="text-align: left">Size of buffer.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-12">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Size of data copied.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="writetoplaybuffer">writeToPlayBuffer</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">writeToPlayBuffer</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Write played data from given buffer to buffer inside AudioClass.</p>
+
+  <h4 id="parameters-13">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">char *</td>
+        <td style="text-align: left">buffer</td>
+        <td style="text-align: left">Pointer to read played data from.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">size</td>
+        <td style="text-align: left">Size of buffer.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-13">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Size of data copied.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h2 id="wav-format-data-scenario-methods">WAV format data scenario methods</h2>
+
+<h3 id="startrecord-1">startRecord</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">startRecord</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">audioBuffer</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Start recording audio data and save WAV format data to audioBuffer.</p>
+
+  <h4 id="parameters-14">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">char *</td>
+        <td style="text-align: left">audioBuffer</td>
+        <td style="text-align: left">Pointer to write WAV format data.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">size</td>
+        <td style="text-align: left">Size of audioBuffer. Maximus recorded WAV format data.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-14">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Result code, 0 (AUDIO_OK) in case of success, error code otherwise.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="startplay-1">startPlay</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">startPlay</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">audioBuffer</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Start playing WAV format data in audioBuffer.</p>
+
+  <h4 id="parameters-15">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">char *</td>
+        <td style="text-align: left">audioBuffer</td>
+        <td style="text-align: left">Pointer to the WAV format data buffer.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">size</td>
+        <td style="text-align: left">size of audioBuffer.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-15">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Result code, 0 (AUDIO_OK) if correct playing, else wrong playing.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="getcurrentsize">getCurrentSize</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">getCurrentSize</span><span class="p">()</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Get current recorded or played WAV format data size in byte.</p>
+
+  <h4 id="parameters-16">Parameters</h4>
+
+  <p>None.</p>
+
+  <h4 id="return-value-16">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Current recorded or played WAV format data size.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="converttomono">convertToMono</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">convertToMono</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span> <span class="n">audioBuffer</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">,</span> <span class="kt">int</span> <span class="n">sampleBitLength</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Convert the given stereo WAV format data to mono WAV format data.</p>
+
+  <h4 id="parameters-17">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">char *</td>
+        <td style="text-align: left">audioBuffer</td>
+        <td style="text-align: left">Pointer to the WAV format data.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">size</td>
+        <td style="text-align: left">size of WAV format data.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">sampleBitLength</td>
+        <td style="text-align: left">Sample bit depth of the given audio data.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-17">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Size of mono WAV format data after convert.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h2 id="sample-code">Sample code</h2>
+<h3 id="callback-scenario">Callback scenario</h3>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include "Arduino.h"
+#include "OledDisplay.h"
+#include "RingBuffer.h"
+#include "AudioClassV2.h"
+</span>
+<span class="k">static</span> <span class="n">AudioClass</span><span class="o">&amp;</span> <span class="n">Audio</span> <span class="o">=</span> <span class="n">AudioClass</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+<span class="k">static</span> <span class="kt">int</span> <span class="n">AUDIO_SIZE</span> <span class="o">=</span> <span class="mi">32000</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">45</span><span class="p">;</span>
+<span class="k">static</span> <span class="kt">char</span> <span class="n">emptyAudio</span><span class="p">[</span><span class="n">AUDIO_CHUNK_SIZE</span><span class="p">];</span>
+
+<span class="n">RingBuffer</span> <span class="nf">ringBuffer</span><span class="p">(</span><span class="n">AUDIO_SIZE</span><span class="p">);</span>
+<span class="kt">char</span> <span class="n">readBuffer</span><span class="p">[</span><span class="n">AUDIO_CHUNK_SIZE</span><span class="p">];</span>
+<span class="kt">bool</span> <span class="n">startPlay</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">lastButtonAState</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">buttonAState</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">lastButtonBState</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">buttonBState</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">pinMode</span><span class="p">(</span><span class="n">LED_BUILTIN</span><span class="p">,</span> <span class="n">OUTPUT</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="mi">115200</span><span class="p">);</span>
+
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Helloworld in Azure IoT DevKits!"</span><span class="p">);</span>
+
+  <span class="c1">// initialize the button pin as a input</span>
+  <span class="n">pinMode</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">,</span> <span class="n">INPUT</span><span class="p">);</span>
+  <span class="n">lastButtonAState</span> <span class="o">=</span> <span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">);</span>
+  <span class="n">pinMode</span><span class="p">(</span><span class="n">USER_BUTTON_B</span><span class="p">,</span> <span class="n">INPUT</span><span class="p">);</span>
+  <span class="n">lastButtonBState</span> <span class="o">=</span> <span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_B</span><span class="p">);</span>
+
+  <span class="n">memset</span><span class="p">(</span><span class="n">emptyAudio</span><span class="p">,</span> <span class="mh">0x0</span><span class="p">,</span> <span class="n">AUDIO_CHUNK_SIZE</span><span class="p">);</span>
+  <span class="n">printIdleMessage</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">buttonAState</span> <span class="o">=</span> <span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">);</span>
+  <span class="n">buttonBState</span> <span class="o">=</span> <span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_B</span><span class="p">);</span>
+    
+  <span class="k">if</span> <span class="p">(</span><span class="n">buttonAState</span> <span class="o">==</span> <span class="n">LOW</span> <span class="o">&amp;&amp;</span> <span class="n">lastButtonAState</span> <span class="o">==</span> <span class="n">HIGH</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">Screen</span><span class="p">.</span><span class="n">clean</span><span class="p">();</span>
+    <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"Start recording:"</span><span class="p">);</span>
+    <span class="n">ringBuffer</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">record</span><span class="p">();</span>
+    <span class="k">while</span><span class="p">(</span><span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">)</span> <span class="o">==</span> <span class="n">LOW</span> <span class="o">&amp;&amp;</span> <span class="n">ringBuffer</span><span class="p">.</span><span class="n">available</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Audio</span><span class="p">.</span><span class="n">getAudioState</span><span class="p">()</span> <span class="o">==</span> <span class="n">AUDIO_STATE_RECORDING</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">Audio</span><span class="p">.</span><span class="n">stop</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="n">startPlay</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="n">printIdleMessage</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">buttonBState</span> <span class="o">==</span> <span class="n">LOW</span> <span class="o">&amp;&amp;</span> <span class="n">lastButtonBState</span> <span class="o">==</span> <span class="n">HIGH</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">startPlay</span> <span class="o">==</span> <span class="nb">true</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">Screen</span><span class="p">.</span><span class="n">clean</span><span class="p">();</span>
+      <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"start playing"</span><span class="p">);</span>
+      <span class="n">play</span><span class="p">();</span>
+      <span class="k">while</span><span class="p">(</span><span class="n">ringBuffer</span><span class="p">.</span><span class="n">use</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">AUDIO_CHUNK_SIZE</span><span class="p">)</span>
+      <span class="p">{</span>
+        <span class="n">delay</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="n">Audio</span><span class="p">.</span><span class="n">stop</span><span class="p">();</span>
+      <span class="n">startPlay</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+      <span class="n">printIdleMessage</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span>
+      <span class="n">Screen</span><span class="p">.</span><span class="n">clean</span><span class="p">();</span>
+      <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"Nothing to play"</span><span class="p">);</span>
+      <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">"Hold A to Record"</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="n">lastButtonAState</span> <span class="o">=</span> <span class="n">buttonAState</span><span class="p">;</span>
+  <span class="n">lastButtonBState</span> <span class="o">=</span> <span class="n">buttonBState</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">printIdleMessage</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">clean</span><span class="p">();</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"AZ3166 AudioV2:  "</span><span class="p">);</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">"Hold A to Record"</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">"Press B to play"</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">record</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"start recording"</span><span class="p">);</span>
+  <span class="n">ringBuffer</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">format</span><span class="p">(</span><span class="mi">8000</span><span class="p">,</span> <span class="mi">16</span><span class="p">);</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">startRecord</span><span class="p">(</span><span class="n">recordCallback</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">play</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"start playing"</span><span class="p">);</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">format</span><span class="p">(</span><span class="mi">8000</span><span class="p">,</span> <span class="mi">16</span><span class="p">);</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">setVolume</span><span class="p">(</span><span class="mi">80</span><span class="p">);</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">startPlay</span><span class="p">(</span><span class="n">playCallback</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">playCallback</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ringBuffer</span><span class="p">.</span><span class="n">use</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">AUDIO_CHUNK_SIZE</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">Audio</span><span class="p">.</span><span class="n">writeToPlayBuffer</span><span class="p">(</span><span class="n">emptyAudio</span><span class="p">,</span> <span class="n">AUDIO_CHUNK_SIZE</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="n">ringBuffer</span><span class="p">.</span><span class="n">get</span><span class="p">((</span><span class="kt">uint8_t</span><span class="o">*</span><span class="p">)</span><span class="n">readBuffer</span><span class="p">,</span> <span class="n">AUDIO_CHUNK_SIZE</span><span class="p">);</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">writeToPlayBuffer</span><span class="p">(</span><span class="n">readBuffer</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">recordCallback</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="n">Audio</span><span class="p">.</span><span class="n">readFromRecordBuffer</span><span class="p">(</span><span class="n">readBuffer</span><span class="p">,</span> <span class="n">AUDIO_CHUNK_SIZE</span><span class="p">);</span>
+  <span class="n">ringBuffer</span><span class="p">.</span><span class="n">put</span><span class="p">((</span><span class="kt">uint8_t</span><span class="o">*</span><span class="p">)</span><span class="n">readBuffer</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="wav-format-data-scenario">WAV format data scenario</h3>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include "Arduino.h"
+#include "OledDisplay.h"
+#include "AudioClassV2.h"
+</span>
+<span class="n">AudioClass</span><span class="o">&amp;</span> <span class="n">Audio</span> <span class="o">=</span> <span class="n">AudioClass</span><span class="o">::</span><span class="n">getInstance</span><span class="p">();</span>
+<span class="k">const</span> <span class="kt">int</span> <span class="n">AUDIO_SIZE</span> <span class="o">=</span> <span class="mi">32000</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">45</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="n">lastButtonAState</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">buttonAState</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">lastButtonBState</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">buttonBState</span><span class="p">;</span>
+<span class="kt">char</span> <span class="o">*</span><span class="n">audioBuffer</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">totalSize</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">monoSize</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">pinMode</span><span class="p">(</span><span class="n">LED_BUILTIN</span><span class="p">,</span> <span class="n">OUTPUT</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="mi">115200</span><span class="p">);</span>
+
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Helloworld in Azure IoT DevKits!"</span><span class="p">);</span>
+
+  <span class="c1">// initialize the button pin as a input</span>
+  <span class="n">pinMode</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">,</span> <span class="n">INPUT</span><span class="p">);</span>
+  <span class="n">lastButtonAState</span> <span class="o">=</span> <span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">);</span>
+  <span class="n">pinMode</span><span class="p">(</span><span class="n">USER_BUTTON_B</span><span class="p">,</span> <span class="n">INPUT</span><span class="p">);</span>
+  <span class="n">lastButtonBState</span> <span class="o">=</span> <span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_B</span><span class="p">);</span>
+
+  <span class="c1">// Setup your local audio buffer</span>
+  <span class="n">audioBuffer</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">AUDIO_SIZE</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">memset</span><span class="p">(</span><span class="n">audioBuffer</span><span class="p">,</span> <span class="mh">0x0</span><span class="p">,</span> <span class="n">AUDIO_SIZE</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">printIdleMessage</span><span class="p">();</span>
+
+  <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">buttonAState</span> <span class="o">=</span> <span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">);</span>
+    <span class="n">buttonBState</span> <span class="o">=</span> <span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_B</span><span class="p">);</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">buttonAState</span> <span class="o">==</span> <span class="n">LOW</span> <span class="o">&amp;&amp;</span> <span class="n">lastButtonAState</span> <span class="o">==</span> <span class="n">HIGH</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">record</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">buttonBState</span> <span class="o">==</span> <span class="n">LOW</span> <span class="o">&amp;&amp;</span> <span class="n">lastButtonBState</span> <span class="o">==</span> <span class="n">HIGH</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">play</span><span class="p">();</span>
+    <span class="p">}</span>
+    
+    <span class="n">lastButtonAState</span> <span class="o">=</span> <span class="n">buttonAState</span><span class="p">;</span>
+    <span class="n">lastButtonBState</span> <span class="o">=</span> <span class="n">buttonBState</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">delay</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">printIdleMessage</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">clean</span><span class="p">();</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"AZ3166 Audio:  "</span><span class="p">);</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">"Press A to record"</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">"Press B to play"</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">record</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="c1">// Re-config the audio data format</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">format</span><span class="p">(</span><span class="mi">8000</span><span class="p">,</span> <span class="mi">16</span><span class="p">);</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">setVolume</span><span class="p">(</span><span class="mi">80</span><span class="p">);</span>
+
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"start recording"</span><span class="p">);</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">clean</span><span class="p">();</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"Start recording"</span><span class="p">);</span>
+
+  <span class="c1">// Start to record audio data</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">startRecord</span><span class="p">(</span><span class="n">audioBuffer</span><span class="p">,</span> <span class="n">AUDIO_SIZE</span><span class="p">);</span>
+
+  <span class="c1">// Check whether the audio record is completed.</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">digitalRead</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">)</span> <span class="o">==</span> <span class="n">LOW</span> <span class="o">&amp;&amp;</span> <span class="n">Audio</span><span class="p">.</span><span class="n">getAudioState</span><span class="p">()</span> <span class="o">==</span> <span class="n">AUDIO_STATE_RECORDING</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">delay</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">stop</span><span class="p">();</span>
+  
+  <span class="n">Screen</span><span class="p">.</span><span class="n">clean</span><span class="p">();</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"Finish recording"</span><span class="p">);</span>
+  <span class="n">totalSize</span> <span class="o">=</span> <span class="n">Audio</span><span class="p">.</span><span class="n">getCurrentSize</span><span class="p">();</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">"Recorded size: "</span><span class="p">);</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="n">totalSize</span><span class="p">);</span>
+
+  <span class="n">printIdleMessage</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">play</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">clean</span><span class="p">();</span>
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"Start playing"</span><span class="p">);</span>
+  <span class="n">Audio</span><span class="p">.</span><span class="n">startPlay</span><span class="p">(</span><span class="n">audioBuffer</span><span class="p">,</span> <span class="n">totalSize</span><span class="p">);</span>
+  
+  <span class="k">while</span> <span class="p">(</span><span class="n">Audio</span><span class="p">.</span><span class="n">getAudioState</span><span class="p">()</span> <span class="o">==</span> <span class="n">AUDIO_STATE_PLAYING</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">delay</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+  <span class="p">}</span>
+  
+  <span class="n">Screen</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"Stop playing"</span><span class="p">);</span>
+  <span class="n">printIdleMessage</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Updated:</strong> <time datetime="2017-11-22">November 22, 2017</time></p>
+        
+      </footer>
+
+      
+
+      
+    </div>
+
+    
+  </article>
+
+  
+  
+</div>
+
+
+    <div class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+          <div class="page__footer-follow">
+
+  <dl class="social-icons">
+    
+      <dt><strong>Follow:</strong></dt>
+    
+    
+    
+    
+      <dd><a href="http://github.com/Microsoft/azure-iot-developer-kit"><i class="fa fa-fw fa-github" aria-hidden="true"></i> GitHub</a></dd>
+    
+    
+    <dd><a href="../../../feed.xml"><i class="fa fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></dd>
+  </dl>
+</div>
+
+<div class="page__footer-copyright">Copyright &copy; 2021 Microsoft Corp.</div>
+      </footer>
+    </div>
+
+    <script src="../../../assets/js/main.min.js"></script>
+
+
+
+
+  <!-- start custom analytics snippet -->
+
+<!-- Google Optimize -->
+<script>(function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date;
+h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};
+(a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
+})(window,document.documentElement,'async-hide','dataLayer',4000,
+{'GTM-TMNC6P5':true});</script>
+
+<!-- Google Analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-98097460-1', 'auto');
+</script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MVB7TDR');</script>
+<!-- End Google Tag Manager -->
+
+<!-- LinkedIn Insight Tag -->
+<script type="text/javascript">
+_linkedin_data_partner_id = "118572";
+</script><script type="text/javascript">
+(function(){var s = document.getElementsByTagName("script")[0];
+var b = document.createElement("script");
+b.type = "text/javascript";b.async = true;
+b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+s.parentNode.insertBefore(b, s);})();
+</script>
+<noscript>
+<img height="1" width="1" style="display:none;" alt="" src="https://dc.ads.linkedin.com/collect/?pid=118572&fmt=gif" />
+</noscript>
+<!-- End LinkedIn Insight Tag -->
+
+<!-- end custom analytics snippet -->
+
+
+
+
+
+
+  </body>
+</html>

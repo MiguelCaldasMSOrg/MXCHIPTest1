@@ -18,6 +18,8 @@ Arduino test sketch for the Microsoft Azure IoT DevKit / MXCHIP AZ3166.
 - [src/generated/audio_test_sample.h](src/generated/audio_test_sample.h):
   pre-generated waveform tables and speech PCM.
 - [tests/](tests/): protocol and application regression tests.
+- [docs/](docs/README.md): complete offline documentation mirrors, source links,
+  and upstream licensing notes.
 
 ## Operating modes
 

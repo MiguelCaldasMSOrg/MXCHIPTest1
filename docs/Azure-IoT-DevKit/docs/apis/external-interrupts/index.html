@@ -1,0 +1,800 @@
+<!doctype html>
+
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin SEO -->
+
+
+
+
+
+
+
+
+
+<title>External Interrupts - IoT DevKit</title>
+
+
+
+
+<meta name="description" content="Library for external interrupts on IoT DevKit">
+
+
+
+
+<meta name="author" content="MXChip IoT DevKit">
+
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="IoT DevKit">
+<meta property="og:title" content="External Interrupts">
+
+
+  <link rel="canonical" href="index.html">
+  <meta property="og:url" content="https://microsoft.github.io/azure-iot-developer-kit/docs/apis/external-interrupts/">
+
+
+
+  <meta property="og:description" content="Library for external interrupts on IoT DevKit">
+
+
+
+
+
+  
+
+  
+
+
+
+  <meta property="og:image" content="https://microsoft.github.io/azure-iot-developer-kit/assets/images/site-logo.png">
+
+
+
+
+
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Organization",
+      "url": "https://microsoft.github.io/azure-iot-developer-kit",
+      "logo": "https://microsoft.github.io/azure-iot-developer-kit/assets/images/site-logo.png"
+    }
+  </script>
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context" : "http://schema.org",
+      "@type" : "Person",
+      "name" : "MXChip IoT DevKit",
+      "url" : "https://microsoft.github.io/azure-iot-developer-kit",
+      "sameAs" : null
+    }
+  </script>
+
+
+
+  <meta name="google-site-verification" content="n4bhlh177u2CIebyTNMalC9SNVqMY1HV4qD104d8X2g" />
+
+
+
+
+<!-- end SEO -->
+
+
+<link href="../../../feed.xml" type="application/atom+xml" rel="alternate" title="IoT DevKit Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="../../../assets/css/main.css">
+<link rel="stylesheet" href="../../../assets/css/extended/extended_main.css">
+
+<!--[if lte IE 9]>
+  <style>
+    /* old IE unsupported flexbox fixes */
+    .greedy-nav .site-title {
+      padding-right: 3em;
+    }
+    .greedy-nav button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+    }
+  </style>
+<![endif]-->
+
+<meta http-equiv="cleartype" content="on">
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+<link rel="apple-touch-icon" sizes="57x57" href="../../../assets/images/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="../../../assets/images/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="../../../assets/images/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="../../../assets/images/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="../../../assets/images/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="../../../assets/images/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="../../../assets/images/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="../../../assets/images/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../../assets/images/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../../assets/images/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../../../assets/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="../../../assets/images/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../../assets/images/favicon-16x16.png">
+<link rel="manifest" href="../../../assets/images/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/azure-iot-developer-kit/assets/images/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<!-- Google Optimize -->
+<style>.async-hide { opacity: 0 !important} </style>
+
+<!-- end custom head snippets -->
+  </head>
+
+  <body class="layout--single">
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+    <div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        <a class="site-title" href="../../../index.html">IoT DevKit</a>
+        <ul class="visible-links">
+          
+            
+            <li class="masthead__menu-item "><a href="https://aka.ms/iot-devkit">Get Started</a></li>
+          
+        </ul>
+        <button type="button" class="hidden" aria-haspopup="true">
+          <span class="navicon"></span>
+          <span class="screen-reader-text">Toggle Navigation</span>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+    
+
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+  
+    
+      
+      
+      
+    
+    
+      
+
+<nav class="nav__list">
+  
+  <input id="ac-toc" name="accordion-toc" type="checkbox" />
+  <label for="ac-toc">Toggle Menu</label>
+  <ul class="nav__items">
+    
+      <li>
+        
+          
+          
+
+          <a href="../../projects/index.html"><span class="nav__sub-title">Projects Catalog</span></a>
+        
+
+        
+      </li>
+    
+      <li>
+        
+          <span class="nav__sub-title">How-to Guides</span>
+        
+
+        
+        <ul>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../firmware-upgrading/index.html" class="">Firmware upgrading</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../use-configuration-mode/index.html" class="">Use configure mode</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../understand-security-chip/index.html" class="">Understand security chip</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../disable-data-collection/index.html" class="">Disable data collection</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../../serial-communications/index.html" class="">Serial communications</a></li>
+          
+        </ul>
+        
+      </li>
+    
+      <li>
+        
+          
+          
+
+          <a href="../../faq/index.html"><span class="nav__sub-title">FAQ</span></a>
+        
+
+        
+      </li>
+    
+      <li>
+        
+          <span class="nav__sub-title">API Reference</span>
+        
+
+        
+        <ul>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../arduino-language-reference/index.html" class="">Arduino</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../audio-v2/index.html" class="">AudioV2</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../display/index.html" class="">Display</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../eeprom-interface/index.html" class="">EEPROMInterface</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../file-system/index.html" class="">FileSystem</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../http-client/index.html" class="">HTTP Client</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="index.html" class="active">External Interrupts</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../irda/index.html" class="">IrDA</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../led/index.html" class="">LED</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../memory-pool/index.html" class="">MemoryPool</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../memory-status/index.html" class="">Memory Status</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../mutex/index.html" class="">Mutex</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../ota/index.html" class="">OTA Programing</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../queue/index.html" class="">Queue</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../semaphore/index.html" class="">Semaphore</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../hts221/index.html" class="">Sensor: Humidity & Temperature (HTS221)</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../lis2mdl/index.html" class="">Sensor: Magnetic (LIS2MDL)</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../lps22hb/index.html" class="">Sensor: Pressure  (LPS22HB)</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../lsm6dsl/index.html" class="">Sensor: Accelerometer & Gyroscope (LSM6DSL)</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../system-function/index.html" class="">System Function</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../thread/index.html" class="">Thread</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../timer/index.html" class="">Timer</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../watchdog-timer/index.html" class="">Watchdog Timer</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../websocket-client/index.html" class="">WebSocket Client</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../wifi/index.html" class="">WiFi</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../wifi-client/index.html" class="">WiFiClient</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../wifi-server/index.html" class="">WiFiServer</a></li>
+          
+            
+            
+
+            
+            
+
+            <li><a href="../wifi-udp/index.html" class="">WiFiUDP</a></li>
+          
+        </ul>
+        
+      </li>
+    
+  </ul>
+</nav>
+    
+  
+  </div>
+
+
+  <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+    <meta itemprop="headline" content="External Interrupts">
+    <meta itemprop="description" content="Library for external interrupts on IoT DevKit">
+    
+    <meta itemprop="dateModified" content="April 26, 2018">
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 class="page__title" itemprop="headline">External Interrupts
+</h1>
+          
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        <p>Interrupts are useful for making things happen automatically in microcontroller programs, and can help solve timing problems. Good tasks for using an interrupt may include reading a rotary encoder, or monitoring user input.</p>
+
+<h2 id="assembly">Assembly</h2>
+
+<p>Arduino.h</p>
+
+<h2 id="summary">Summary</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Methods</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><a href="index.html#attachinterrupt">attachInterrupt</a> - <code class="language-plaintext highlighter-rouge">int attachInterrupt(PinName pin, Callback&lt;void()&gt; ISR, int mode)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><a href="index.html#detachinterrupt">detachInterrupt</a> - <code class="language-plaintext highlighter-rouge">int detachInterrupt(PinName pin)</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="methods">Methods</h2>
+
+<h3 id="attachinterrupt">attachInterrupt</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">attachInterrupt</span><span class="p">(</span><span class="n">PinName</span> <span class="n">pin</span><span class="p">,</span> <span class="n">Callback</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">()</span><span class="o">&gt;</span> <span class="n">ISR</span><span class="p">,</span> <span class="kt">int</span> <span class="n">mode</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Attach interrupt callback to digital pin.</p>
+
+  <h4 id="parameters">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">PinName</td>
+        <td style="text-align: left">pin</td>
+        <td style="text-align: left">Valid PinNames are: PA_4, PA_5, PA_10, PB_0, PB_2, PB_3, PB_6, PB_7, PB_8, PB_9, PB_13, PB_14, PB_15.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">Callback&lt;void()&gt;</td>
+        <td style="text-align: left">ISR</td>
+        <td style="text-align: left">The callback function.</td>
+      </tr>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">mode</td>
+        <td style="text-align: left">Triggered event type, support CHANGE, RISING, FALLING now.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Result code, 0 in case of success, error code otherwise.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="detachinterrupt">detachInterrupt</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">detachInterrupt</span><span class="p">(</span><span class="n">PinName</span> <span class="n">pin</span><span class="p">);</span>
+</code></pre></div></div>
+<blockquote>
+  <p>Detach interrupt callback from digital pin.</p>
+
+  <h4 id="parameters-1">Parameters</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Name</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">PinName</td>
+        <td style="text-align: left">pin</td>
+        <td style="text-align: left">Valid PinNames are: PA_4, PA_5, PA_10, PB_0, PB_2, PB_3, PB_6, PB_7, PB_8, PB_9, PB_13, PB_14, PB_15.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4 id="return-value-1">Return value</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: left">Type</th>
+        <th style="text-align: left">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left">int</td>
+        <td style="text-align: left">Result code, 0 in case of success, error code otherwise.</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h2 id="sample-code">Sample code</h2>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">volatile</span> <span class="n">byte</span> <span class="n">led</span> <span class="o">=</span> <span class="n">LOW</span><span class="p">;</span>
+<span class="k">volatile</span> <span class="n">byte</span> <span class="n">interruptOn</span> <span class="o">=</span> <span class="n">HIGH</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Use USER_BUTTON_B to control USER_BUTTON_A</span>
+  <span class="n">attachInterrupt</span><span class="p">(</span><span class="n">USER_BUTTON_B</span><span class="p">,</span> <span class="n">interruptSwitch</span><span class="p">,</span> <span class="n">FALLING</span><span class="p">);</span>
+  <span class="c1">// Use USER_BUTTON_A to control LED_USER</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">interruptOn</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">attachInterrupt</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">,</span> <span class="n">blink</span><span class="p">,</span> <span class="n">CHANGE</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">LED_USER</span><span class="p">,</span> <span class="n">led</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">blink</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">led</span> <span class="o">=</span> <span class="o">!</span><span class="n">led</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">interruptSwitch</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">interruptOn</span> <span class="o">=</span> <span class="o">!</span><span class="n">interruptOn</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">interruptOn</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">attachInterrupt</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">,</span> <span class="n">blink</span><span class="p">,</span> <span class="n">CHANGE</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">detachInterrupt</span><span class="p">(</span><span class="n">USER_BUTTON_A</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Updated:</strong> <time datetime="2018-04-26">April 26, 2018</time></p>
+        
+      </footer>
+
+      
+
+      
+    </div>
+
+    
+  </article>
+
+  
+  
+</div>
+
+
+    <div class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+          <div class="page__footer-follow">
+
+  <dl class="social-icons">
+    
+      <dt><strong>Follow:</strong></dt>
+    
+    
+    
+    
+      <dd><a href="http://github.com/Microsoft/azure-iot-developer-kit"><i class="fa fa-fw fa-github" aria-hidden="true"></i> GitHub</a></dd>
+    
+    
+    <dd><a href="../../../feed.xml"><i class="fa fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></dd>
+  </dl>
+</div>
+
+<div class="page__footer-copyright">Copyright &copy; 2021 Microsoft Corp.</div>
+      </footer>
+    </div>
+
+    <script src="../../../assets/js/main.min.js"></script>
+
+
+
+
+  <!-- start custom analytics snippet -->
+
+<!-- Google Optimize -->
+<script>(function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date;
+h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};
+(a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
+})(window,document.documentElement,'async-hide','dataLayer',4000,
+{'GTM-TMNC6P5':true});</script>
+
+<!-- Google Analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-98097460-1', 'auto');
+</script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MVB7TDR');</script>
+<!-- End Google Tag Manager -->
+
+<!-- LinkedIn Insight Tag -->
+<script type="text/javascript">
+_linkedin_data_partner_id = "118572";
+</script><script type="text/javascript">
+(function(){var s = document.getElementsByTagName("script")[0];
+var b = document.createElement("script");
+b.type = "text/javascript";b.async = true;
+b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+s.parentNode.insertBefore(b, s);})();
+</script>
+<noscript>
+<img height="1" width="1" style="display:none;" alt="" src="https://dc.ads.linkedin.com/collect/?pid=118572&fmt=gif" />
+</noscript>
+<!-- End LinkedIn Insight Tag -->
+
+<!-- end custom analytics snippet -->
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,1 @@
+Sitemap: https://microsoft.github.io/azure-iot-developer-kit/sitemap.xml
