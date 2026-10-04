@@ -1,21 +1,14 @@
 #include <RGB_LED.h>
 #include "src/AppConfig.h"
 #include "src/AudioTests.h"
+#include "src/LoRaBridge.h"
 #include "src/RadioBridge.h"
 
 namespace {
   constexpr unsigned long kBlinkIntervalMs = 500;
   constexpr unsigned long kDisplayIntervalMs = 1000;
   constexpr unsigned long kButtonDebounceMs = 30;
-  constexpr bool kRgbChannels[][3] = {
-    {true, false, false},
-    {false, true, false},
-    {false, false, true},
-    {true, true, false},
-    {false, true, true},
-    {true, false, true},
-    {true, true, true}
-  };
+  constexpr bool kRgbChannels[][3] = {{true, false, false}, {false, true, false}, {false, false, true}, {true, true, false}, {false, true, true}, {true, false, true}, {true, true, true}};
   constexpr int kRgbIntensities[] = {32, 128, 255};
   constexpr size_t kRgbColorCount = sizeof(kRgbChannels) / sizeof(kRgbChannels[0]);
   constexpr size_t kRgbIntensityCount = sizeof(kRgbIntensities) / sizeof(kRgbIntensities[0]);
@@ -26,8 +19,7 @@ namespace {
     bool stablePressed = false;
     unsigned long changedMs = 0;
 
-    explicit DebouncedButton(uint32_t buttonPin) : pin(buttonPin) {
-    }
+    explicit DebouncedButton(uint32_t buttonPin): pin(buttonPin) {}
 
     void begin() {
       pinMode(pin, INPUT);
@@ -96,9 +88,13 @@ void setup() {
       Serial.println("Press button B to play a short audio test through the headphone jack.");
     }
   } else {
-    Serial.println("Audio suspended: Grove RF TX uses P2/PB_7. Audio code and samples are retained.");
+    Serial.println("Audio suspended: the selected radio mode uses the shared Grove pins. Audio code and samples are retained.");
   }
-  RadioBridge::begin();
+  if (AppConfig::kLoRaEnabled) {
+    LoRaBridge::begin();
+  } else {
+    RadioBridge::begin();
+  }
 }
 
 void loop() {
@@ -113,11 +109,17 @@ void loop() {
     if (AppConfig::kAudioEnabled) {
       AudioTests::advance();
     } else {
-      Serial.println("Button B: audio suspended while RF transmission uses P2.");
-      Screen.print(1, "Audio suspended");
+      Serial.println("Button B: audio suspended in the selected radio mode.");
+      if (!AppConfig::kLoRaEnabled) {
+        Screen.print(1, "Audio suspended");
+      }
     }
   }
-  RadioBridge::update();
+  if (AppConfig::kLoRaEnabled) {
+    LoRaBridge::update();
+  } else {
+    RadioBridge::update();
+  }
 
   if (now - lastBlinkMs >= kBlinkIntervalMs) {
     lastBlinkMs = now;

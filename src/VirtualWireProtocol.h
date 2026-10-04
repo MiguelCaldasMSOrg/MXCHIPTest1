@@ -18,10 +18,7 @@ namespace VirtualWireProtocol {
   constexpr uint16_t kStartSymbol = 0xB38;
   constexpr uint16_t kCrcResidue = 0xF0B8;
   constexpr uint32_t kSyncWindow = (static_cast<uint32_t>(kStartSymbol) << 12) | 0xAAA;
-  const uint8_t kSymbols[] = {
-    0x0D, 0x0E, 0x13, 0x15, 0x16, 0x19, 0x1A, 0x1C,
-    0x23, 0x25, 0x26, 0x29, 0x2A, 0x2C, 0x32, 0x34
-  };
+  const uint8_t kSymbols[] = {0x0D, 0x0E, 0x13, 0x15, 0x16, 0x19, 0x1A, 0x1C, 0x23, 0x25, 0x26, 0x29, 0x2A, 0x2C, 0x32, 0x34};
   static_assert(kFrameCapacity <= 255, "Frame length must fit its one-byte count.");
   static_assert(kBitRate * kSamplePeriodUs * kSamplesPerBit == 1000000, "Radio sampling must divide the bit interval exactly.");
   static_assert(kSamplesPerBit >= 4 && kSamplesPerBit % 2 == 0, "The receiver needs an even oversampling factor.");

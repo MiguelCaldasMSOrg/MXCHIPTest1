@@ -1,0 +1,51 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++11
+ColumnLimit: 300
+IndentWidth: 2
+ContinuationIndentWidth: 2
+ConstructorInitializerIndentWidth: 2
+TabWidth: 2
+UseTab: Never
+NamespaceIndentation: All
+IndentExternBlock: Indent
+AccessModifierOffset: 0
+IndentCaseLabels: true
+BreakBeforeBraces: Attach
+BreakTemplateDeclarations: No
+AllowShortFunctionsOnASingleLine:
+  Empty: true
+  Inline: false
+  Other: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortNamespacesOnASingleLine: false
+SpaceInEmptyBraces: Never
+InsertBraces: true
+SpaceBeforeCtorInitializerColon: false
+SpaceBeforeInheritanceColon: false
+SpaceBeforeEnumUnderlyingTypeColon: false
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceBeforeCaseColon: false
+BitFieldColonSpacing: After
+AlignAfterOpenBracket: false
+AlignOperands: DontAlign
+BreakAfterOpenBracketFunction: true
+BreakBeforeCloseBracketFunction: true
+PackParameters:
+  BinPack: OnePerLine
+PackArguments:
+  BinPack: OnePerLine
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllArgumentsOnNextLine: false
+PackConstructorInitializers: CurrentLine
+BinPackLongBracedList: true
+SortIncludes:
+  Enabled: false
+SortUsingDeclarations: Never
+ReflowComments: Never
+BreakStringLiterals: false
+FixNamespaceComments: false

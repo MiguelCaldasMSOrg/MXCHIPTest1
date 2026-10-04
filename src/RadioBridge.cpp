@@ -2,30 +2,28 @@
 #include <platform/mbed_critical.h>
 #include "AppConfig.h"
 #include "RadioBridge.h"
+#include "RadioDisplay.h"
 #include "rf_receiver.h"
 #include "rf_transmitter.h"
 
 namespace {
-  constexpr unsigned long kScrollMs = 250;
   constexpr unsigned long kStatsMs = 5000;
   constexpr unsigned long kTxGapMs = 100;
-  constexpr size_t kDisplayColumns = 16;
-  constexpr size_t kMessageColumns = 12;
-  constexpr size_t kScrollGap = 3;
 
-  DigitalIn input(PB_0);
   Ticker ticker;
   VirtualWireDecoder decoder;
   VirtualWireTransmitter transmitter;
   SerialRadioInput serialInput;
-  unsigned long lastScrollMs = 0;
   unsigned long lastStatsMs = 0;
   unsigned long lastTxMs = 0;
   unsigned long txCompleted = 0;
-  char message[VirtualWireProtocol::kMaxPayloadLength + 1] = {};
-  size_t messageLength = 0;
-  size_t scroll = 0;
   bool txInProgress = false;
+  bool initialized = false;
+
+  DigitalIn &input() {
+    static DigitalIn pin(PB_0);
+    return pin;
+  }
 
   DigitalOut &output() {
     // Construct only in RF mode; audio mode must never configure the shared P2 pin.
@@ -37,55 +35,7 @@ namespace {
     if (AppConfig::kRadioTransmitEnabled) {
       output().write(transmitter.sample() ? 1 : 0);
     }
-    decoder.sample(input.read() != 0);
-  }
-
-  void drawMessage() {
-    char line[kDisplayColumns + 1] = "RF: ";
-    for (size_t i = 0; i < kMessageColumns; i++) {
-      size_t position = scroll + i;
-      if (messageLength > kMessageColumns) {
-        position %= messageLength + kScrollGap;
-      }
-      line[4 + i] = position < messageLength ? message[position] : ' ';
-    }
-    line[kDisplayColumns] = '\0';
-    Screen.print(0, line);
-  }
-
-  void acceptMessage(const uint8_t *payload, uint8_t length) {
-    char text[VirtualWireProtocol::kMaxPayloadLength + 1];
-    size_t used = 0;
-    bool substituted = false;
-    for (size_t i = 0; i < length && payload[i] != 0; i++) {
-      const uint8_t value = payload[i];
-      if (value == '\r' || value == '\n' || value == '\t') {
-        text[used++] = ' ';
-      } else if (value >= 32 && value <= 126) {
-        text[used++] = static_cast<char>(value);
-      } else {
-        text[used++] = '?';
-        substituted = true;
-      }
-    }
-    text[used] = '\0';
-    if (used == 0) {
-      strcpy(text, "(empty)");
-      used = 7;
-    }
-
-    Serial.print("RF received: ");
-    Serial.println(text);
-    if (substituted) {
-      Serial.println("RF text: unsupported display characters replaced with '?'.");
-    }
-    if (messageLength == 0 || strcmp(text, message) != 0) {
-      memcpy(message, text, used + 1);
-      messageLength = used;
-      scroll = 0;
-      lastScrollMs = millis();
-      drawMessage();
-    }
+    decoder.sample(input().read() != 0);
   }
 
   void receiveMessage() {
@@ -98,7 +48,7 @@ namespace {
     const bool received = decoder.read(payload, length);
     core_util_critical_section_exit();
     if (received) {
-      acceptMessage(payload, length);
+      RadioDisplay::show(payload, length, "RF");
     }
   }
 
@@ -176,14 +126,6 @@ namespace {
     txInProgress = true;
   }
 
-  void updateDisplay(unsigned long now) {
-    if (messageLength > kMessageColumns && now - lastScrollMs >= kScrollMs) {
-      lastScrollMs = now;
-      scroll = (scroll + 1) % (messageLength + kScrollGap);
-      drawMessage();
-    }
-  }
-
   void reportStatistics(unsigned long now) {
     if (now - lastStatsMs < kStatsMs) {
       return;
@@ -209,13 +151,18 @@ namespace {
 
 namespace RadioBridge {
   void begin() {
-    input.mode(PullNone);
-    decoder.reset(input.read() != 0);
+    if (!AppConfig::kRadioEnabled) {
+      Serial.println("ASK radio inactive in LoRa mode.");
+      return;
+    }
+    input().mode(PullNone);
+    decoder.reset(input().read() != 0);
     if (AppConfig::kRadioTransmitEnabled) {
       output().write(0);
     }
     ticker.attach_us(&sampleRadio, VirtualWireProtocol::kSamplePeriodUs);
-    Screen.print(0, "RF: waiting");
+    initialized = true;
+    RadioDisplay::begin();
     Serial.println("RF RX: Grove P0/P14 (PB_0), VirtualWire 2000 bit/s.");
     if (AppConfig::kRadioTransmitEnabled) {
       Serial.println("RF TX: Grove P2/P16 (PB_7). Send 1-77 ASCII bytes followed by CR, LF, or CRLF.");
@@ -225,11 +172,14 @@ namespace RadioBridge {
   }
 
   void update() {
+    if (!AppConfig::kRadioEnabled || !initialized) {
+      return;
+    }
     receiveMessage();
     finishTransmission(millis());
     readSerialLines();
     startTransmission(millis());
-    updateDisplay(millis());
+    RadioDisplay::update();
     reportStatistics(millis());
   }
 }

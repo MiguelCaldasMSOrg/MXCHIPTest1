@@ -16,7 +16,7 @@ static void check(bool condition, const char *message) {
 
 static uint16_t frameCheck(const std::vector<uint8_t> &bytes) {
   uint16_t crc = 0xFFFF;
-  for (uint8_t byte : bytes) {
+  for (uint8_t byte: bytes) {
     for (unsigned int bit = 0; bit < 8; bit++) {
       const bool feedback = ((crc ^ (byte >> bit)) & 1) != 0;
       crc >>= 1;
@@ -45,16 +45,13 @@ static void appendBits(std::vector<uint8_t> &bits, uint16_t value, unsigned int 
 }
 
 static std::vector<uint8_t> encode(const std::vector<uint8_t> &bytes) {
-  const uint8_t symbols[] = {
-    0x0D, 0x0E, 0x13, 0x15, 0x16, 0x19, 0x1A, 0x1C,
-    0x23, 0x25, 0x26, 0x29, 0x2A, 0x2C, 0x32, 0x34
-  };
+  const uint8_t symbols[] = {0x0D, 0x0E, 0x13, 0x15, 0x16, 0x19, 0x1A, 0x1C, 0x23, 0x25, 0x26, 0x29, 0x2A, 0x2C, 0x32, 0x34};
   std::vector<uint8_t> bits;
   for (unsigned int i = 0; i < 36; i++) {
     bits.push_back(i & 1);
   }
   appendBits(bits, 0xB38, 12);
-  for (uint8_t byte : bytes) {
+  for (uint8_t byte: bytes) {
     appendBits(bits, symbols[byte >> 4], 6);
     appendBits(bits, symbols[byte & 15], 6);
   }
@@ -95,7 +92,7 @@ static void expectNoMessage(VirtualWireDecoder &decoder) {
 
 static SerialRadioInput::Result serialLine(SerialRadioInput &input, const std::string &text) {
   SerialRadioInput::Result result = SerialRadioInput::Result::None;
-  for (unsigned char byte : text) {
+  for (unsigned char byte: text) {
     const SerialRadioInput::Result current = input.push(byte);
     if (current != SerialRadioInput::Result::None) {
       result = current;
@@ -212,9 +209,9 @@ static void testSerialInput() {
 }
 
 int main() {
-  check(AppConfig::kAudioEnabled != AppConfig::kRadioTransmitEnabled, "audio and RF transmission must be mutually exclusive");
-  check(AppConfig::kAudioEnabled == (MXCHIP_ENABLE_AUDIO_TESTS != 0), "the application mode follows the build setting");
-  std::cout << "PASS: audio/RF mode exclusion\n";
+  check(static_cast<int>(AppConfig::kAudioEnabled) + AppConfig::kRadioTransmitEnabled + AppConfig::kLoRaEnabled == 1, "exactly one audio/ASK/LoRa mode must be selected");
+  check(AppConfig::kRadioEnabled == !AppConfig::kLoRaEnabled, "ASK reception must be inactive in LoRa mode");
+  std::cout << "PASS: audio/ASK/LoRa mode exclusion\n";
   const std::string crcText = "123456789";
   check(frameCheck(std::vector<uint8_t>(crcText.begin(), crcText.end())) == 0x906E, "CRC-16/X-25 reference check");
   const std::vector<uint8_t> hello = {'h', 'e', 'l', 'l', 'o'};
@@ -228,7 +225,7 @@ int main() {
   }
   std::cout << "PASS: reference CRC, hello, and all sampling phases\n";
 
-  for (int speed : {9, 11}) {
+  for (int speed: {9, 11}) {
     VirtualWireDecoder decoder;
     feed(decoder, helloBits, speed);
     check(read(decoder) == hello, "decode with transmitter clock variation");
@@ -258,14 +255,14 @@ int main() {
     uint32_t random = 0xA53C19E7;
     for (size_t length = 1; length <= VirtualWireDecoder::kMaxPayloadLength; length++) {
       std::vector<uint8_t> payload(length);
-      for (uint8_t &byte : payload) {
+      for (uint8_t &byte: payload) {
         random ^= random << 13;
         random ^= random >> 17;
         random ^= random << 5;
         byte = static_cast<uint8_t>(random);
       }
       const std::vector<uint8_t> bits = encode(packet(payload));
-      for (int speed : {9, 10, 11}) {
+      for (int speed: {9, 10, 11}) {
         VirtualWireDecoder decoder;
         feed(decoder, bits, speed, speed == 10, speed == 10, static_cast<int>(length % 10));
         check(read(decoder) == payload, "all payload lengths and byte values at varied timing");
@@ -284,7 +281,7 @@ int main() {
     feed(decoder, helloBits);
     check(read(decoder) == hello, "recovery after bad CRC");
   }
-  for (uint8_t invalidLength : {0, 3, 81, 255}) {
+  for (uint8_t invalidLength: {0, 3, 81, 255}) {
     VirtualWireDecoder decoder;
     feed(decoder, encode({invalidLength}));
     expectNoMessage(decoder);

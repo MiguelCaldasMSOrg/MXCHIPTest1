@@ -14,6 +14,9 @@ namespace FakeHardware {
   extern bool outputLevel;
   extern unsigned int outputConstructions;
   extern unsigned int outputWrites;
+  extern unsigned int inputConstructions;
+  extern bool pinLevels[4];
+  extern unsigned int pinOutputConstructions[4];
   extern void (*timerCallback)();
   extern unsigned int timerPeriodUs;
 }
@@ -27,12 +30,12 @@ class TestSerial {
   std::string output;
   std::deque<uint8_t> input;
 
-  template<typename T> void print(const T &value) {
+  template <typename T> void print(const T &value) {
     std::ostringstream stream;
     stream << value;
     output += stream.str();
   }
-  template<typename T> void println(const T &value) {
+  template <typename T> void println(const T &value) {
     print(value);
     println();
   }
@@ -75,34 +78,49 @@ extern TestScreen Screen;
 
 enum PinName {
   PB_0,
-  PB_7
+  PB_7,
+  PB_14,
+  PC_6
 };
 
 enum PinMode {
-  PullNone
+  PullNone,
+  PullUp
 };
 
 class DigitalIn {
   public:
-  explicit DigitalIn(PinName) {
+  explicit DigitalIn(PinName name): pin(name) {
+    FakeHardware::inputConstructions++;
   }
-  void mode(PinMode) {
+  void mode(PinMode mode) {
+    if (mode == PullUp) {
+      FakeHardware::pinLevels[pin] = true;
+    }
   }
   int read() const {
-    return FakeHardware::loopback && FakeHardware::outputLevel;
+    return FakeHardware::loopback ? FakeHardware::outputLevel : FakeHardware::pinLevels[pin];
   }
+
+  private:
+  PinName pin;
 };
 
 class DigitalOut {
   public:
-  DigitalOut(PinName, int value) {
+  DigitalOut(PinName name, int value): pin(name) {
     FakeHardware::outputConstructions++;
+    FakeHardware::pinOutputConstructions[pin]++;
     write(value);
   }
   void write(int value) {
     FakeHardware::outputWrites++;
     FakeHardware::outputLevel = value != 0;
+    FakeHardware::pinLevels[pin] = value != 0;
   }
+
+  private:
+  PinName pin;
 };
 
 class Ticker {

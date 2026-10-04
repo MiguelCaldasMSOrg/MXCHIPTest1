@@ -105,17 +105,25 @@ jobs:
 
       - name: Test protocol and gated application behavior
         run: |
-          for mode in 0 1; do
+          for mode in 0 1 2; do
             g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
-              -DMXCHIP_ENABLE_AUDIO_TESTS="$mode" -I src \
+              -DMXCHIP_TEST_MODE="$mode" -I src \
               tests/rf_receiver_test.cpp -o "/tmp/rf-receiver-test-$mode"
             "/tmp/rf-receiver-test-$mode"
             g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
-              -DMXCHIP_ENABLE_AUDIO_TESTS="$mode" -I tests/stubs -I src \
-              tests/application_test.cpp src/AudioTests.cpp src/RadioBridge.cpp \
+              -DMXCHIP_TEST_MODE="$mode" -I tests/stubs -I src \
+              tests/application_test.cpp src/AudioTests.cpp src/RadioBridge.cpp src/RadioDisplay.cpp \
               -o "/tmp/application-test-$mode"
             "/tmp/application-test-$mode"
+            g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
+              -DMXCHIP_TEST_MODE="$mode" -I tests/stubs -I src \
+              tests/lora_bridge_test.cpp src/LoRaBridge.cpp src/RadioDisplay.cpp \
+              -o "/tmp/lora-bridge-test-$mode"
+            "/tmp/lora-bridge-test-$mode"
           done
+          g++ -std=c++11 -Wall -Wextra -Werror -pedantic -I src \
+            tests/lora_test.cpp -o /tmp/lora-protocol-test
+          /tmp/lora-protocol-test
 
       - name: Test firmware packaging
         shell: pwsh
@@ -128,19 +136,21 @@ jobs:
           cp MXCHIPTest1.ino /tmp/MXCHIPTest1/
           cp -a src /tmp/MXCHIPTest1/src
 
-      - name: Validate audio configuration
+      - name: Validate retained ASK and audio configurations
         run: |
-          arduino-cli compile \
-            --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 \
-            --build-property compiler.cpp.extra_flags=-DMXCHIP_ENABLE_AUDIO_TESTS=1 \
-            --build-path "$RUNNER_TEMP/audio-build" \
-            /tmp/MXCHIPTest1
+          for mode in 0 1; do
+            arduino-cli compile \
+              --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 \
+              --build-property "compiler.cpp.extra_flags=-DMXCHIP_TEST_MODE=$mode" \
+              --build-path "$RUNNER_TEMP/mode-$mode-build" \
+              /tmp/MXCHIPTest1
+          done
 
-      - name: Compile RF release firmware
+      - name: Compile default LoRa release firmware
         run: |
           arduino-cli compile \
             --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 \
-            --build-property compiler.cpp.extra_flags=-DMXCHIP_ENABLE_AUDIO_TESTS=0 \
+            --build-property compiler.cpp.extra_flags=-DMXCHIP_TEST_MODE=2 \
             --output-dir "$GITHUB_WORKSPACE/build" \
             /tmp/MXCHIPTest1
 

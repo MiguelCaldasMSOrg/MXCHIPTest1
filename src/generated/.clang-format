@@ -1,0 +1,15 @@
+# Numeric initializer tables are data, not function parameter lists.
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++11
+ColumnLimit: 300
+IndentWidth: 2
+ContinuationIndentWidth: 2
+BracedInitializerIndentWidth: 2
+TabWidth: 2
+UseTab: Never
+NamespaceIndentation: All
+SortIncludes:
+  Enabled: false
+ReflowComments: Never
+FixNamespaceComments: false

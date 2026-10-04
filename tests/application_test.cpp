@@ -14,6 +14,9 @@ namespace FakeHardware {
   bool outputLevel = false;
   unsigned int outputConstructions = 0;
   unsigned int outputWrites = 0;
+  unsigned int inputConstructions = 0;
+  bool pinLevels[4] = {};
+  unsigned int pinOutputConstructions[4] = {};
   void (*timerCallback)() = nullptr;
   unsigned int timerPeriodUs = 0;
 }
@@ -198,7 +201,14 @@ extern "C" {
 }
 
 int main() {
-  if (AppConfig::kAudioEnabled) {
+  if (AppConfig::kLoRaEnabled) {
+    RadioBridge::begin();
+    RadioBridge::update();
+    check(!AudioTests::begin(), "audio must be inactive in LoRa mode");
+    check(FakeHardware::outputConstructions == 0 && FakeHardware::inputConstructions == 0, "inactive ASK and audio code must not configure Grove pins");
+    check(FakeHardware::timerCallback == nullptr && audioInitializations == 0, "inactive modes must not initialize timers or the audio codec");
+    std::cout << "PASS: LoRa mode leaves ASK/audio peripherals inactive\n";
+  } else if (AppConfig::kAudioEnabled) {
     testAudioMode();
   } else {
     testRadioMode();

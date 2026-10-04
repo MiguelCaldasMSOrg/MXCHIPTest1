@@ -32,20 +32,9 @@ namespace {
   constexpr uint32_t kTonePhaseStep = static_cast<uint32_t>(440.0 * 4294967296.0 / kSampleRate);
   constexpr uint8_t kVolumes[] = {25, 50, 75};
   constexpr size_t kVolumeCount = sizeof(kVolumes) / sizeof(kVolumes[0]);
-  constexpr Clip kClips[] = {
-    {ClipKind::Sine, "Sine"},
-    {ClipKind::Triangle, "Triangle"},
-    {ClipKind::SoftSquare, "Soft square"},
-    {ClipKind::Melody, "Melody"},
-    {ClipKind::Speech, "Speech"}
-  };
+  constexpr Clip kClips[] = {{ClipKind::Sine, "Sine"}, {ClipKind::Triangle, "Triangle"}, {ClipKind::SoftSquare, "Soft square"}, {ClipKind::Melody, "Melody"}, {ClipKind::Speech, "Speech"}};
   constexpr size_t kClipCount = sizeof(kClips) / sizeof(kClips[0]);
-  constexpr uint32_t kMelodyPhaseSteps[] = {
-    static_cast<uint32_t>(261.63 * 4294967296.0 / kSampleRate),
-    static_cast<uint32_t>(329.63 * 4294967296.0 / kSampleRate),
-    static_cast<uint32_t>(392.0 * 4294967296.0 / kSampleRate),
-    static_cast<uint32_t>(523.25 * 4294967296.0 / kSampleRate)
-  };
+  constexpr uint32_t kMelodyPhaseSteps[] = {static_cast<uint32_t>(261.63 * 4294967296.0 / kSampleRate), static_cast<uint32_t>(329.63 * 4294967296.0 / kSampleRate), static_cast<uint32_t>(392.0 * 4294967296.0 / kSampleRate), static_cast<uint32_t>(523.25 * 4294967296.0 / kSampleRate)};
   static_assert(kSpeechSampleRate == kSampleRate, "Speech sample rate must match playback.");
   static_assert(kSpeechSampleCount > 0 && kSpeechSampleCount <= kMaxFrames, "Speech must fit the playback buffer.");
   static_assert(kMaxFrames * 2 <= 0xFFFF, "Audio must fit a single finite DMA transfer.");
@@ -142,7 +131,7 @@ namespace AudioTests {
     }
     ready = false;
     if (!AppConfig::kAudioEnabled) {
-      Serial.println("Audio suspended: RF transmission owns P2.");
+      Serial.println("Audio suspended: the selected radio mode owns the shared Grove pins.");
       return false;
     }
     // The BSP exposes initialization errors hidden by the higher-level wrapper.
@@ -188,10 +177,7 @@ namespace AudioTests {
 
     // The BSP playback helper truncates at 4095 words; the HAL accepts a finite 16-bit count.
     const uint16_t words = static_cast<uint16_t>(frames * 2);
-    if (BSP_AUDIO_OUT_SetMute(AUDIO_MUTE_OFF) != AUDIO_OK ||
-        HAL_I2S_Transmit_DMA(&haudio_i2s, samples, words) != HAL_OK ||
-        HAL_I2S_GetState(&haudio_i2s) != HAL_I2S_STATE_BUSY_TX ||
-        HAL_I2S_GetError(&haudio_i2s) != HAL_I2S_ERROR_NONE) {
+    if (BSP_AUDIO_OUT_SetMute(AUDIO_MUTE_OFF) != AUDIO_OK || HAL_I2S_Transmit_DMA(&haudio_i2s, samples, words) != HAL_OK || HAL_I2S_GetState(&haudio_i2s) != HAL_I2S_STATE_BUSY_TX || HAL_I2S_GetError(&haudio_i2s) != HAL_I2S_ERROR_NONE) {
       stopPlayback();
       reportError("DMA playback did not start");
       return;
@@ -204,14 +190,7 @@ namespace AudioTests {
     nextStep = (nextStep + 1) % (kClipCount * kVolumeCount);
 
     char status[96];
-    snprintf(
-      status,
-      sizeof(status),
-      "Audio preparation: %lu ms; DMA words: %u, remaining: %lu",
-      prepareMs,
-      static_cast<unsigned int>(haudio_i2s.TxXferSize),
-      static_cast<unsigned long>(__HAL_DMA_GET_COUNTER(haudio_i2s.hdmatx))
-    );
+    snprintf(status, sizeof(status), "Audio preparation: %lu ms; DMA words: %u, remaining: %lu", prepareMs, static_cast<unsigned int>(haudio_i2s.TxXferSize), static_cast<unsigned long>(__HAL_DMA_GET_COUNTER(haudio_i2s.hdmatx)));
     Serial.println(status);
     snprintf(status, sizeof(status), "Button B: %s, volume %u/100, expected %lu ms", clip.name, static_cast<unsigned int>(volume), expectedMs);
     Serial.println(status);

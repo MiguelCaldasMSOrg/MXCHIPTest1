@@ -6,11 +6,17 @@ Arduino test sketch for the Microsoft Azure IoT DevKit / MXCHIP AZ3166.
 
 - [MXCHIPTest1.ino](MXCHIPTest1.ino): board startup, button dispatch, RGB test,
   LED blink, and uptime.
-- [src/AppConfig.h](src/AppConfig.h): the single audio/RF-transmit mode setting.
+- [src/AppConfig.h](src/AppConfig.h): the single ASK/audio/LoRa mode setting.
 - [src/AudioTests.cpp](src/AudioTests.cpp): bounded waveform, melody, and speech
   playback, including codec/DMA error handling.
 - [src/RadioBridge.cpp](src/RadioBridge.cpp): Grove pin ownership, USB serial
-  input, RF transmission/reception, and the scrolling display.
+  input, and ASK RF transmission/reception.
+- [src/LoRaBridge.cpp](src/LoRaBridge.cpp), [src/LoRaE5.h](src/LoRaE5.h), and
+  [src/SoftwareUart.h](src/SoftwareUart.h): the two Grove LoRa-E5 UART links,
+  bounded AT command handling, and point-to-point LoRa loopback.
+- [src/SerialRadioInput.h](src/SerialRadioInput.h) and
+  [src/RadioDisplay.cpp](src/RadioDisplay.cpp): shared serial-line buffering and
+  received-message display/scrolling.
 - [src/VirtualWireProtocol.h](src/VirtualWireProtocol.h),
   [src/rf_receiver.h](src/rf_receiver.h), and
   [src/rf_transmitter.h](src/rf_transmitter.h): hardware-independent packet
@@ -21,19 +27,45 @@ Arduino test sketch for the Microsoft Azure IoT DevKit / MXCHIP AZ3166.
 - [docs/](docs/README.md): complete offline documentation mirrors, source links,
   and upstream licensing notes.
 
+## Code formatting
+
+[.clang-format](.clang-format) defines the project C++ style: two-space
+indentation, same-line opening braces, compact empty bodies, and colon
+separators with a space only after the colon (excluding `?:` and `::`).
+Function signatures and calls stay on one line up to 300 characters; longer
+parameter/argument lists put each item on its own line. These rules apply only
+to C++ (including Arduino sketches), not to YAML, JSON, PowerShell, or other
+languages. In particular, the 300-character rule does not apply to YAML.
+
+Use clang-format 23 or newer, such as the version bundled with the current
+VS Code C/C++ extension, via **Format Document**. C++ files in the workspace use
+spaces with a tab width of two; other languages keep their existing settings.
+Generated numeric tables have a
+[data-specific formatting configuration](src/generated/.clang-format) to keep
+their initializer rows compact. Do not reformat the vendored documentation
+mirrors or third-party packages.
+
 ## Operating modes
 
-Set `MXCHIP_ENABLE_AUDIO_TESTS` in [src/AppConfig.h](src/AppConfig.h):
+Set `MXCHIP_TEST_MODE` in [src/AppConfig.h](src/AppConfig.h):
 
-| Value | Audio | RF transmission | RF reception |
+| Value | Audio | 433 MHz ASK RF | Grove LoRa-E5 |
 | --- | --- | --- | --- |
-| `0` (default) | Suspended, code retained | Enabled on P2 | Enabled on P0 |
-| `1` | Enabled | Disabled; the RF driver does not configure P2 | Enabled on P0 |
+| `0` | Suspended, code retained | TX on P2, RX on P0 | Inactive |
+| `1` | Enabled | RX on P0 only; RF TX does not configure P2 | Inactive |
+| `2` (default) | Suspended, code retained | Inactive; no ASK GPIO/timer initialization | Two UART-controlled modules on P0/P14 and P2/P16 |
 
-The RF-transmit setting is derived from the audio setting, so they cannot both
-be enabled. Other values are rejected at compile time. Disconnect the RF
-transmitter before using audio mode because the physical P2 signal is then
-used by the audio codec's I2C bus.
+The active paths are derived from this one setting; conflicting or invalid
+settings fail at compile time. All audio and ASK code and samples remain in the
+project. Existing `MXCHIP_ENABLE_AUDIO_TESTS=0/1` compiler overrides still select
+the old ASK/audio modes when no new mode override is supplied.
+
+**Power off before changing Grove modules.** LoRa-E5 drives Grove pin 1 as its
+UART output, whereas the ASK transmitter expects that same wire to be driven
+by the DevKit. Disconnect the E5 modules before uploading ASK or audio firmware,
+and disconnect the ASK transmitter before using audio mode. To switch from ASK
+to LoRa, flash LoRa mode with both module cables unplugged, then power off,
+connect the E5 modules, and power back on.
 
 ## Installed support
 
@@ -144,11 +176,11 @@ once. The existing LED blink and uptime updates continue during the test.
 
 ## Button B: audio output test
 
-Audio is **suspended in the default Grove RF configuration**: the audio codec
-uses P1/P2 for I2C, and RF transmission uses P2. All audio code and samples are
-retained. To restore audio, disconnect the RF transmitter and set
-`MXCHIP_ENABLE_AUDIO_TESTS` to `1` in [src/AppConfig.h](src/AppConfig.h) before rebuilding. That setting
-disables RF transmission; RF reception on P0 remains available.
+Audio is **suspended in either radio-transmit mode** because the Grove signals
+overlap the codec's I2C/I2S pins. All audio code and samples are retained. To
+restore audio, disconnect the radio modules and set `MXCHIP_TEST_MODE` to `1`
+in [src/AppConfig.h](src/AppConfig.h) before rebuilding. ASK reception on P0
+remains available with the appropriate receiver; LoRa is inactive.
 
 Connect headphones or a powered speaker to the **3.5 mm headphone jack**. The
 NAU88C10 codec is mono; this is not a stereo-channel-separation test. Start with
@@ -188,6 +220,8 @@ The generator writes speech to a temporary WAV file without playing it on the
 computer, validates the PCM format/duration, and normalizes its peak amplitude.
 
 ## Grove 433 MHz serial-to-radio loopback
+
+Select `MXCHIP_TEST_MODE=0` for the original ASK RF kit.
 
 Use standard Grove cables with the adapter's bottom connectors:
 
@@ -244,6 +278,94 @@ DATA transitions, and completed transmissions every five seconds. Noise on this 
 normal when no transmitter is active; transitions alone do not indicate a
 valid message.
 
+## Two Grove LoRa-E5 modules
+
+Select `MXCHIP_TEST_MODE=2` (the current default). This uses the modules'
+**factory AT firmware** in direct LoRa TEST mode, not LoRaWAN. No gateway,
+join credentials, module reflashing, or LoRaWAN service is required.
+
+Use standard Grove cables, the adapter's **3.3 V** setting, and two appropriate
+**868 MHz antennas**, fitted before sending. Keep the same bottom connectors:
+
+| Transceiver | Grove connector | Module TX to DevKit input | DevKit output to module RX |
+| --- | --- | --- | --- |
+| **A** | **P0/P14** | Pin 1 (yellow): P0 / `PB_0` | Pin 2 (white): P14 / `PB_14` |
+| **B** | **P2/P16** | Pin 1 (yellow): P2 / `PB_7` | Pin 2 (white): P16 / `PC_6` |
+
+Both modules transmit and receive during every successful test. The red/black
+wires provide power/common ground. Unlike the ASK kit, the E5 uses both signal
+wires. These connector pairs are not two usable hardware UARTs, so independent
+timer-driven **9600-baud, 8N1** UARTs handle commands and replies without blocking
+USB serial, Button A, or the uptime display. P1/P15 would not provide a hardware
+UART pair either; the I2C connector remains free.
+
+At startup, each module must acknowledge AT communication, TEST mode, stopping
+any previous test, and the matching RF configuration. Both then enter
+continuous receive mode. Before each transmission, that module stops receiving;
+after `TX DONE`, it returns to receive mode. An echo is sent only after the
+original sender acknowledges that it is listening again.
+
+The configured **EU868** test profile is **868.1 MHz, SF7, 125 kHz bandwidth,
+10 dBm, CRC on, normal IQ, private network**, with TX/RX preambles of 12/15.
+Use it only where that frequency and power are permitted. At this profile,
+the largest packet is 85 bytes (77 user bytes plus an 8-byte test header) and
+has less than 160 ms airtime. **Each radio independently waits at least
+16 seconds** after startup and after its own transmit completion before sending
+again, conservatively pacing this bench test to a 1% duty cycle per transmitter.
+The two hops of one round trip do not need a 16-second gap between them because
+they use different transmitters; subsequent queued tests wait for both radios.
+Do not bypass this interval; it is not the LoRaWAN stack's duty-cycle control.
+
+Open the USB serial monitor at **115200 baud**. Send 1-77 printable ASCII bytes
+(tabs are allowed) followed by CR, LF, or CRLF. The shared four-message queue
+handles bursts; invalid or excess lines are reported rather than truncated.
+Payload bytes are hex-encoded into `AT+TEST=TXLRPKT` so quotes and backslashes
+cannot become AT commands.
+
+Each line starts an automatically correlated round trip:
+
+1. The initiating module transmits a request containing the text.
+2. The other module receives and validates the request, then echoes the bytes
+   actually received over RF.
+3. The initiating module receives the echo, and its transaction ID, direction,
+   length, and payload must match.
+
+The initial direction is **B -> A -> B**. The next line uses **A -> B -> A**,
+alternating on each new test. Success requires one completed transmission and
+one matching reception from **each** transceiver, followed by both returning
+to listening. `TX DONE` alone never counts as successful reception.
+
+Only matched RX payloads produce `LoRa A received:` / `LoRa B received:` and
+update the OLED's `RF:` row. `LoRa loopback OK` appears on the status row only
+after the full round trip succeeds. Long strings continue scrolling, Button A
+still cycles RGB colors, and Button B reports that audio is suspended.
+
+[LoRaFrame.h](src/LoRaFrame.h) defines the test framing: `MX` magic, version 1,
+request/reply type, a little-endian 32-bit transaction ID, then the user bytes.
+IDs distinguish active tests from stale/duplicate packets within a run; this
+is test correlation, not authentication. Unsolicited packets and ordinary
+unframed LoRa strings are ignored rather than echoed, preventing echo loops.
+
+A lost forward packet or return echo fails the test after a 12-second
+transaction timeout. Altered payloads fail immediately. There is no automatic
+RF retransmission; later queued tests may proceed when both radios are ready
+and their duty-cycle guards permit.
+
+AT timeouts, unexpected configuration, UART framing/buffer errors, and malformed
+receive data are reported explicitly and stop further transmissions. No blind
+retries or local display echoes are used. Correct the power/wiring/firmware
+issue and reset the DevKit to retry. The modules' existing factory firmware and
+LoRaWAN credentials are not erased. Statistics report **A-TX, A-RX, B-TX,
+B-RX**, passed/failed round trips, ignored frames, unread-packet drops, and
+both UART error counts. RX counters count matched test frames, not unrelated
+traffic.
+
+References: [Seeed's Grove v1.0 schematic](https://files.seeedstudio.com/products/113020091/Grove%20-%20LoRa%20-E5%20v1.0.pdf),
+[P2P example](https://wiki.seeedstudio.com/Grove_Wio_E5_P2P/), and
+[AT command specification](https://files.seeedstudio.com/products/317990687/res/LoRa-E5%20AT%20Command%20Specification_V1.0%20.pdf).
+
+## Tests
+
 The host tests require a `g++` compiler and can be
 run on Windows with:
 
@@ -251,12 +373,16 @@ run on Windows with:
 .\tools\test-rf.ps1
 ```
 
-They run in both operating modes and cover framing, CRC, payload bounds,
+They run in all three operating modes and cover framing, CRC, payload bounds,
 sampling phase, timing variation, noise, exact transmitted bits, serial line
 endings, queue overflow, display scrolling, and the absence of local echo.
 Application tests also verify that audio mode never constructs or drives the
 RF output, and exercise all 15 audio/volume combinations, PCM amplitude limits,
 busy handling, automatic mute, the two-second cutoff, and failure paths.
+LoRa tests cover 8N1 sampling/timing, both module UARTs, verified AT settings,
+request/reply framing, half-duplex handover, both-hop loss, stale replies,
+payload mismatch, maximum-length round trips, independent per-radio pacing,
+and inactive-mode GPIO exclusion.
 
 Firmware packaging has separate regression tests:
 
@@ -266,8 +392,8 @@ Firmware packaging has separate regression tests:
 
 These verify the reference checksum, vector-table checks, exact flash-size
 boundary, and unchanged bootloader/application bytes. All test suites run in
-GitHub Actions, which also compiles both firmware configurations before
-publishing the default RF-mode release.
+GitHub Actions, which also compiles all three firmware configurations before
+publishing the default LoRa-mode release.
 
 ## Firmware images
 

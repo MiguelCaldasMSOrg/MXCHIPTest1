@@ -5,6 +5,12 @@
 		}
 	],
 	"settings": {
+		"[cpp]": {
+			"editor.tabSize": 2,
+			"editor.insertSpaces": true,
+			"editor.detectIndentation": false
+		},
+		"C_Cpp.formatting": "clangFormat",
 		"C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
 		"files.associations": {
 			"*.ino": "cpp"
