@@ -26,7 +26,7 @@ namespace {
   }
 
   DigitalOut &output() {
-    // Construct only in RF mode; audio mode must never configure the shared P2 pin.
+    // Construct only for ASK TX; other modes must not claim the shared P2 pin.
     static DigitalOut pin(PB_7, 0);
     return pin;
   }
@@ -152,7 +152,7 @@ namespace {
 namespace RadioBridge {
   void begin() {
     if (!AppConfig::kRadioEnabled) {
-      Serial.println("ASK radio inactive in LoRa mode.");
+      Serial.println("ASK radio inactive in the selected firmware mode.");
       return;
     }
     input().mode(PullNone);

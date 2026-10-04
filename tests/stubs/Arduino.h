@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <deque>
 #include <sstream>
@@ -25,11 +26,21 @@ inline unsigned long millis() {
   return static_cast<unsigned long>(FakeHardware::nowUs / 1000);
 }
 
+inline void delay(unsigned long milliseconds) {
+  FakeHardware::nowUs += static_cast<uint64_t>(milliseconds) * 1000;
+}
+
+class __FlashStringHelper;
+#define F(value) reinterpret_cast<const __FlashStringHelper *>(value)
+
 class TestSerial {
   public:
   std::string output;
   std::deque<uint8_t> input;
 
+  void print(const __FlashStringHelper *value) {
+    print(reinterpret_cast<const char *>(value));
+  }
   template <typename T> void print(const T &value) {
     std::ostringstream stream;
     stream << value;
@@ -62,6 +73,7 @@ class TestSerial {
 class TestScreen {
   public:
   std::string lines[4];
+  unsigned int writes[4] = {};
   bool invalidWrite = false;
 
   void print(unsigned int line, const char *text) {
@@ -70,6 +82,7 @@ class TestScreen {
       return;
     }
     lines[line] = text;
+    ++writes[line];
   }
 };
 

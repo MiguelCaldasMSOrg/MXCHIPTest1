@@ -131,7 +131,7 @@ namespace AudioTests {
     }
     ready = false;
     if (!AppConfig::kAudioEnabled) {
-      Serial.println("Audio suspended: the selected radio mode owns the shared Grove pins.");
+      Serial.println("Audio suspended in this firmware mode; select mode 1 to enable it.");
       return false;
     }
     // The BSP exposes initialization errors hidden by the higher-level wrapper.

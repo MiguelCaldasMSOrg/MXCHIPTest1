@@ -1,12 +1,20 @@
 # MXCHIPTest1
 
-Arduino test sketch for the Microsoft Azure IoT DevKit / MXCHIP AZ3166.
+Arduino multi-peripheral test sketch for the Microsoft Azure IoT DevKit /
+MXCHIP AZ3166. The current default mode tests a Grove High Precision RTC v1.0
+(PCF85063TP) on the I2C Grove socket. The existing audio, ASK RF, LoRa, and
+Grove RTC v1.2 (DS1307) modes remain selectable.
 
 ## Project layout
 
-- [MXCHIPTest1.ino](MXCHIPTest1.ino): board startup, button dispatch, RGB test,
-  LED blink, and uptime.
-- [src/AppConfig.h](src/AppConfig.h): the single ASK/audio/LoRa mode setting.
+- [MXCHIPTest1.ino](MXCHIPTest1.ino): board startup, mode/button dispatch, RGB
+  tests, the RTC result LED, heartbeat, and non-RTC uptime.
+- [src/RtcClock.cpp](src/RtcClock.cpp): validated date/time conversion,
+  chip-specific register access through native I2C, and verified snapshot
+  capture/restoration for both RTCs.
+- [src/RtcTests.cpp](src/RtcTests.cpp): PCF85063TP/DS1307 feature suites, serial
+  commands, test status, and the live OLED clock.
+- [src/AppConfig.h](src/AppConfig.h): the single ASK/audio/LoRa/RTC mode setting.
 - [src/AudioTests.cpp](src/AudioTests.cpp): bounded waveform, melody, and speech
   playback, including codec/DMA error handling.
 - [src/RadioBridge.cpp](src/RadioBridge.cpp): Grove pin ownership, USB serial
@@ -14,9 +22,12 @@ Arduino test sketch for the Microsoft Azure IoT DevKit / MXCHIP AZ3166.
 - [src/LoRaBridge.cpp](src/LoRaBridge.cpp), [src/LoRaE5.h](src/LoRaE5.h), and
   [src/SoftwareUart.h](src/SoftwareUart.h): the two Grove LoRa-E5 UART links,
   bounded AT command handling, and point-to-point LoRa loopback.
-- [src/SerialRadioInput.h](src/SerialRadioInput.h) and
-  [src/RadioDisplay.cpp](src/RadioDisplay.cpp): shared serial-line buffering and
-  received-message display/scrolling.
+- [src/SerialLineInput.h](src/SerialLineInput.h): bounded, fixed-capacity
+  serial-line buffering shared by radios and RTC commands.
+  [src/SerialRadioInput.h](src/SerialRadioInput.h) retains the radios'
+  77-byte/four-message configuration; RTC input uses one 20-byte command.
+- [src/RadioDisplay.cpp](src/RadioDisplay.cpp): shared received-message
+  display/scrolling.
 - [src/VirtualWireProtocol.h](src/VirtualWireProtocol.h),
   [src/rf_receiver.h](src/rf_receiver.h), and
   [src/rf_transmitter.h](src/rf_transmitter.h): hardware-independent packet
@@ -26,6 +37,12 @@ Arduino test sketch for the Microsoft Azure IoT DevKit / MXCHIP AZ3166.
 - [tests/](tests/): protocol and application regression tests.
 - [docs/](docs/README.md): complete offline documentation mirrors, source links,
   and upstream licensing notes.
+
+The hardware-independent radio protocols and existing audio/radio modules stay
+separate. RTC register/calendar handling is isolated from the interactive test
+harness, without dynamic allocation or a runtime driver framework. One
+compile-time mode selects the hardware path; changing a mode does not delete
+the other implementations.
 
 ## Code formatting
 
@@ -49,16 +66,20 @@ mirrors or third-party packages.
 
 Set `MXCHIP_TEST_MODE` in [src/AppConfig.h](src/AppConfig.h):
 
-| Value | Audio | 433 MHz ASK RF | Grove LoRa-E5 |
-| --- | --- | --- | --- |
-| `0` | Suspended, code retained | TX on P2, RX on P0 | Inactive |
-| `1` | Enabled | RX on P0 only; RF TX does not configure P2 | Inactive |
-| `2` (default) | Suspended, code retained | Inactive; no ASK GPIO/timer initialization | Two UART-controlled modules on P0/P14 and P2/P16 |
+| Value | Mode | Active peripherals |
+| --- | --- | --- |
+| `0` | ASK radio | RF TX on P2, RX on P0; audio off. |
+| `1` | Audio | Audio output and ASK RX on P0; RF TX does not claim P2. |
+| `2` | LoRa | Two UART-controlled E5 modules on P0/P14 and P2/P16; ASK/audio off. |
+| `3` (default) | High Precision RTC v1.0 | PCF85063TP at I2C `0x51`; radios/audio off. |
+| `4` | RTC v1.2 | DS1307 at I2C `0x68`; radios/audio off. |
 
 The active paths are derived from this one setting; conflicting or invalid
-settings fail at compile time. All audio and ASK code and samples remain in the
-project. Existing `MXCHIP_ENABLE_AUDIO_TESTS=0/1` compiler overrides still select
+settings fail at compile time. All five implementations and the audio samples
+remain in the project. Existing `MXCHIP_ENABLE_AUDIO_TESTS=0/1` compiler overrides still select
 the old ASK/audio modes when no new mode override is supplied.
+The release workflow validates all five configurations and builds its default
+firmware from the same `MXCHIP_TEST_MODE` setting, without a separate mode override.
 
 **Power off before changing Grove modules.** LoRa-E5 drives Grove pin 1 as its
 UART output, whereas the ASK transmitter expects that same wire to be driven
@@ -67,13 +88,41 @@ and disconnect the ASK transmitter before using audio mode. To switch from ASK
 to LoRa, flash LoRa mode with both module cables unplugged, then power off,
 connect the E5 modules, and power back on.
 
+### Grove High Precision RTC v1.0 power
+
+The [Grove High Precision RTC](https://wiki.seeedstudio.com/Grove_High_Precision_RTC/)
+supports 3.3 V operation; leave the adapter at **3.3 V** for the AZ3166.
+Its CR1225 battery holder provides backup power for the clock and RAM when the
+Grove supply is disconnected. The DS1307-specific voltage limitation below
+does not apply to this PCF85063TP module.
+
+### Grove RTC v1.2 power requirements
+
+The [Grove RTC](https://wiki.seeedstudio.com/Grove-RTC/) uses the DS1307 and a
+CR1225 backup cell. Without a battery, time and RAM retention cannot be expected
+after power loss. Although Seeed's module page lists 3.3-5.5 V, the
+[manufacturer's DS1307 datasheet](https://raw.githubusercontent.com/SeeedDocument/Grove-RTC/master/res/DS1307.pdf)
+specifies **4.5-5.5 V VCC** and inhibits I2C below approximately 1.25 times the
+battery voltage (about 3.75 V for a 3 V cell). The adapter's existing 3.3 V
+setting is therefore not a guaranteed operating condition; a missing `0x68`
+response can indicate insufficient supply voltage rather than a faulty RTC.
+
+**Do not simply switch the adapter to 5 V.** The
+[published Grove RTC schematic](https://raw.githubusercontent.com/SeeedDocument/Grove-RTC/master/res/Grove%20-%20RTC%20v1.1%20Sch.pdf)
+has SDA/SCL pull-ups to VCC. A compliant 5 V supply requires suitable
+bidirectional I2C level shifting so the AZ3166's shared OLED/sensor bus remains
+at 3.3 V. The firmware does not change the adapter's supply voltage.
+Both RTC modes use the MXCHIP-native shared I2C driver at 100 kHz, without
+reinitializing the bus through `Wire`.
+
 ## Installed support
 
 - Arduino CLI 1.5.1
 - MXChip - Microsoft Azure IoT Developer Kit core 2.0.0
 - Windows ST-Link debug driver 2.2.0.0 from STSW-LINK009 2.0.2
 - Board: `AZ3166:stm32f4:MXCHIP_AZ3166`
-- Serial/upload port: `COM3`
+- Saved local serial/upload default: `COM3` in [sketch.yaml](sketch.yaml);
+  use `arduino-cli board list` to find the actual port.
 
 The board core includes the device libraries required for the AZ3166:
 Audio, Azure IoT, filesystem, MQTT, sensors, SPI, WebSocket, Wi-Fi, and Wire.
@@ -132,7 +181,7 @@ the full-package installer merely to upgrade already-working interfaces.
 
 ## Arduino CLI
 
-The local upload defaults are stored in `sketch.yaml`. The build script mirrors
+The local upload defaults are stored in [sketch.yaml](sketch.yaml). The build script mirrors
 the release workflow: it explicitly targets the MXCHIP AZ3166 and compiles a
 fresh staged copy of the sketch and complete `src/` tree under
 `_build/MXCHIPTest1`, without the local upload-port metadata. A board does not
@@ -141,29 +190,159 @@ compilation, so rebuild if it reports that the source snapshot changed.
 
 ```powershell
 .\tools\build.ps1
-arduino-cli upload --input-dir build .
-arduino-cli monitor -p COM3 -c baudrate=115200
+arduino-cli board list
+arduino-cli upload --port COM8 --input-dir build .
+arduino-cli monitor -p COM8 -c baudrate=115200
 ```
 
-Different boards can have different COM ports. With one board connected, use
-`arduino-cli board list` to identify its port and override the stored default
-with `--port COM8`, for example, when uploading or monitoring.
+`COM8` is an example; use the connected board's reported port. The explicit
+`--port` overrides the saved local default.
 
 The build script also refreshes `build/compile_commands.json`, which the
 workspace uses to configure C/C++ IntelliSense for the MXCHIP core and libraries.
-It adds entries for the original sketch and C/C++ source files, rather than
-only their generated build copies. The `.ino` entry injects `Arduino.h` and
-selects C++, matching the sketch's compilation environment.
+It adds entries for the original sketch and every C/C++ source file, rather
+than only their generated build copies. The `.ino` entry injects `Arduino.h`
+and selects C++, matching the sketch's compilation environment.
 
 ## Arduino IDE
 
-Open `MXCHIPTest1.ino` in Arduino IDE. Select **MXCHIP AZ3166** as the board and
-**COM3** as the port if the IDE does not load the defaults automatically.
+Open [MXCHIPTest1.ino](MXCHIPTest1.ino), select **MXCHIP AZ3166**, and select the
+board's actual serial port. Change the mode in
+[src/AppConfig.h](src/AppConfig.h) before compiling/uploading.
 
-After upload, the onboard LED blinks, the OLED shows the uptime, and the serial
-monitor reports the uptime at 115200 baud.
+## Startup and controls
 
-## Button A: RGB LED test
+The USB console runs at **115200 baud** in every mode. The built-in LED is a
+heartbeat, not a test result; it pauses while the RTC's blocking self-test runs.
+
+| Modes | Startup / display | Button A | Button B | Serial input |
+| --- | --- | --- | --- | --- |
+| `0`, `1` | ASK reception on the top row, audio/RGB status and uptime below. | Cycle RGB colors/intensities. | Play the next audio clip in mode `1`; report audio suspended in mode `0`. | Queue ASK text, or reject TX in audio mode. |
+| `2` | Initialize both LoRa modules; display received text, test status, RGB and uptime. | Cycle RGB colors/intensities. | Report audio suspended. | Queue LoRa round-trip text. |
+| `3`, `4` | Detect RTC, initialize invalid/untrusted time to the compile timestamp, run the suite, then show date/time. | Rerun the RTC suite. | Set RTC to the compile timestamp. | RTC commands described below. |
+
+In RTC modes, the RGB LED and OLED status show the last suite's pass/fail
+result, including suites invoked with serial `f`. The date/time rows update
+only when their text changes. A failed/invalid RTC read clears the stale time
+and reports an error; reconnecting a previously detected RTC can recover the
+display without resetting it.
+
+## RTC tests and commands (modes 3 and 4)
+
+In mode `3`, the 15-check suite covers I2C communication, validated BCD time/calendar data, leap-day and
+year rollover, stop/start, 12-hour mode, minute and half-minute interrupt flags,
+the free RAM byte, both offset-calibration modes, oscillator load selection,
+correction interrupt enable, external test control, every CLKOUT selection,
+oscillator-stop handling, and software reset. Minute/half-minute flags are
+tested with normal, zero-offset calibration as required by the PCF85063TP.
+It readback-verifies restoration of the saved time, RAM byte, calibration,
+control settings, and running/stopped state afterward. The INT and CLKOUT
+electrical waveforms require probes on the module's dedicated pads because
+those signals are not present on the four-wire Grove I2C connector.
+
+In mode `4`, the DS1307 suite performs 23 I2C feature checks:
+
+- Communication and valid calendar fields at `0x68`.
+- CH oscillator halt and restart; 24-hour minute/hour rollover.
+- Leap-day entry/exit, non-leap February, 30-day months, weekday wrap, and the
+  two-digit year register's `99` to `00` rollover.
+- 12-hour AM-to-PM noon and PM-to-AM midnight/year rollover.
+- All **56 battery-backed RAM bytes** with zero, all-one, address, and
+  complemented-address patterns, plus random access at both ends of RAM.
+- SQW/OUT static low/high control and all four square-wave selections:
+  **1, 4096, 8192, and 32768 Hz**.
+- Readback-verified restoration of the saved time, 12/24-hour mode, CH state,
+  output control, and all RAM bytes. A running saved clock is advanced by
+  elapsed test time; a deliberately halted clock stays halted.
+
+Both suites take a single register-map snapshot before modifying the device.
+Invalid BCD/calendar data prevents destructive testing; use `t` to set a valid
+time first. Both suites advance a saved running clock by the elapsed test time
+and preserve a deliberately stopped clock. Restoration attempts the original
+run/stop state even when another register write fails. Full tests intentionally
+exercise/reset latched flags; they do not preserve pending interrupt events.
+
+These tests temporarily change the clock and RAM. **Do not reset or disconnect
+the board while the suite is running.** Normal completion restores the saved
+state; I2C or restoration failures are reported explicitly. Allow about 15
+seconds for PCF85063TP and 20-30 seconds for DS1307, or longer if oscillator
+tests time out. Buttons, serial command processing, and the heartbeat wait
+until a suite finishes.
+
+SQW/OUT register checks do **not** measure the physical waveform. A scope or
+frequency counter on the separate SQW/OUT pad is required for frequency/duty
+cycle measurements. Battery retention, backup current, and long-term crystal
+accuracy also require physical tests; they are not counted as software passes.
+The DS1307 has no programmable alarm, countdown timer, software reset, or
+calibration register; the PCF85063TP-only tests are never sent to it.
+
+At 115200 baud, use `f` to rerun the full test, `s` to show the time, `b` to set
+the RTC to the firmware build time, `d` for a read-only register dump (including
+RAM), and `h` (or `?`) for help. Button A reruns the test; button B sets the
+firmware compile timestamp. These controls work in both RTC modes, but are
+ordinary payload text in radio modes.
+
+`s` reports `OS!` when PCF85063TP clock integrity is lost, `STOP` when its
+counters are deliberately stopped, or `CH!` when the DS1307 oscillator is
+halted. `b` uses the RTC test code's compile timestamp, not the upload time or
+the computer's current time; use the computer synchronization below for that.
+
+To set an explicit date and time, send `t YYYY-MM-DD HH:MM:SS` followed by Enter,
+for example `t 2026-10-04 16:25:18`. Use 24-hour input and a valid date in
+2000-2099; the weekday is calculated automatically. LF, CR, and CRLF line
+endings are accepted. Invalid or overlong input is rejected without changing
+the RTC. Successful writes are read back before the clock restarts, and failures
+are reported on serial. The RTC's 12/24-hour setting, RAM, output configuration,
+and calibration (PCF85063TP only) are preserved. Displayed weekdays use Sunday
+`W0` through Saturday `W6`; DS1307 registers use Seeed's Monday=1 through
+Sunday=7 convention. The existing single-character commands still work without Enter.
+
+To use the computer's current local time from PowerShell, close any other
+serial monitor, select the connected board's port, and run:
+
+```powershell
+$port = [System.IO.Ports.SerialPort]::new('COM8', 115200, 'None', 8, 'One')
+$port.ReadTimeout = 75000
+$port.WriteTimeout = 2000
+try {
+  $port.Open()
+  $port.DiscardInBuffer()
+  $port.Write('s') # Wait for the queued read to finish after any startup self-test.
+  do {
+    $line = $port.ReadLine().Trim()
+    if ($line -match 'not found|RTC read failed') { throw $line }
+  } while ($line -notmatch '^\d{4}-\d{2}-\d{2} W[0-6] \d{2}:\d{2}:\d{2}(?: (?:OS!|CH!|STOP))?$')
+  $port.WriteLine('t ' + (Get-Date).AddSeconds(1).ToString('yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::InvariantCulture))
+  $reply = $port.ReadLine().Trim()
+  if (-not $reply.StartsWith('RTC set from serial: ')) { throw $reply }
+  $reply
+} finally {
+  $port.Dispose()
+}
+```
+
+Expect `RTC set from serial: ...` as confirmation. The RTC stores the supplied
+wall-clock time, not a time zone or automatic daylight-saving rules. This
+computer-time sync adds one second before sending to compensate for the
+observed setting delay; small UART and whole-second rounding errors may remain.
+The manual `t` command itself does not add an offset.
+
+For a battery-retention check in either RTC mode, finish the suite and synchronize first.
+Save the `s` and `d` responses, keep the AZ3166 powered over USB, disconnect only
+the RTC's Grove cable for at least 30 seconds with a good CR1225 installed,
+then reconnect the same RTC and read `s` and `d` again. Check that time advanced
+by the elapsed interval:
+
+- **PCF85063TP (mode 3):** RAM register `03` must retain its byte and the
+  oscillator-stop flag (bit 7 of seconds register `04`) must remain clear.
+- **DS1307 (mode 4):** registers `08` through `3F` must retain all 56 RAM bytes,
+  and the CH bit (bit 7 of seconds register `00`) must remain clear.
+
+Do not reset the AZ3166 or run `f`, `b`, or `t` between these readings:
+reinitialization could mask loss of battery-backed data. The I2C/display read
+errors while disconnected are expected, not a passing backup test.
+
+## Button A: RGB LED test (modes 0-2)
 
 Press and release **Button A** to advance the RGB LED through red, green, blue,
 yellow, cyan, magenta, and white. Each color is shown at intensities **32, 128,
@@ -174,11 +353,12 @@ The OLED shows the current RGB values, and the serial monitor reports each
 change and its intensity. Button input is debounced; holding A advances only
 once. The existing LED blink and uptime updates continue during the test.
 
-## Button B: audio output test
+## Button B: audio output test (mode 1)
 
-Audio is **suspended in either radio-transmit mode** because the Grove signals
-overlap the codec's I2C/I2S pins. All audio code and samples are retained. To
-restore audio, disconnect the radio modules and set `MXCHIP_TEST_MODE` to `1`
+Audio is **enabled only in mode 1**. Radio-transmit modes conflict with the
+codec's I2C/I2S pins; RTC modes also leave audio inactive and use Button B for
+clock setting. All audio code and samples are retained. To restore audio,
+disconnect the radio transmitter modules and set `MXCHIP_TEST_MODE` to `1`
 in [src/AppConfig.h](src/AppConfig.h) before rebuilding. ASK reception on P0
 remains available with the appropriate receiver; LoRa is inactive.
 
@@ -280,7 +460,7 @@ valid message.
 
 ## Two Grove LoRa-E5 modules
 
-Select `MXCHIP_TEST_MODE=2` (the current default). This uses the modules'
+Select `MXCHIP_TEST_MODE=2`. This uses the modules'
 **factory AT firmware** in direct LoRa TEST mode, not LoRaWAN. No gateway,
 join credentials, module reflashing, or LoRaWAN service is required.
 
@@ -373,7 +553,7 @@ run on Windows with:
 .\tools\test-rf.ps1
 ```
 
-They run in all three operating modes and cover framing, CRC, payload bounds,
+They run in all five operating modes and cover framing, CRC, payload bounds,
 sampling phase, timing variation, noise, exact transmitted bits, serial line
 endings, queue overflow, display scrolling, and the absence of local echo.
 Application tests also verify that audio mode never constructs or drives the
@@ -383,6 +563,14 @@ LoRa tests cover 8N1 sampling/timing, both module UARTs, verified AT settings,
 request/reply framing, half-duplex handover, both-hop loss, stale replies,
 payload mismatch, maximum-length round trips, independent per-radio pacing,
 and inactive-mode GPIO exclusion.
+RTC tests cover the date/time serial command, strict calendar and range
+validation, weekday calculation, line endings and fragmented input, 12/24-hour
+encoding, invalid BCD rejection, setting preservation, ignored writes,
+readback verification, and I2C failure paths for both chips. Register/clock
+models exercise both complete suites, RAM/output patterns, normal-mode
+periodic interrupts, running/halted state restoration, millisecond-counter
+rollover, register dumps, and injected failures. Tests also verify compact RTC
+input storage and change-only OLED updates with error recovery.
 
 Firmware packaging has separate regression tests:
 
@@ -392,8 +580,8 @@ Firmware packaging has separate regression tests:
 
 These verify the reference checksum, vector-table checks, exact flash-size
 boundary, and unchanged bootloader/application bytes. All test suites run in
-GitHub Actions, which also compiles all three firmware configurations before
-publishing the default LoRa-mode release.
+GitHub Actions, which also compiles all five firmware configurations before
+publishing the default mode selected in [src/AppConfig.h](src/AppConfig.h).
 
 ## Firmware images
 

@@ -209,9 +209,9 @@ static void testSerialInput() {
 }
 
 int main() {
-  check(static_cast<int>(AppConfig::kAudioEnabled) + AppConfig::kRadioTransmitEnabled + AppConfig::kLoRaEnabled == 1, "exactly one audio/ASK/LoRa mode must be selected");
-  check(AppConfig::kRadioEnabled == !AppConfig::kLoRaEnabled, "ASK reception must be inactive in LoRa mode");
-  std::cout << "PASS: audio/ASK/LoRa mode exclusion\n";
+  check(static_cast<int>(AppConfig::kAudioEnabled) + AppConfig::kRadioTransmitEnabled + AppConfig::kLoRaEnabled + AppConfig::kRtcEnabled == 1, "exactly one audio/ASK/LoRa/RTC mode must be selected");
+  check(AppConfig::kRadioEnabled == !(AppConfig::kLoRaEnabled || AppConfig::kRtcEnabled), "ASK reception must be inactive in LoRa and RTC modes");
+  std::cout << "PASS: audio/ASK/LoRa/RTC mode exclusion\n";
   const std::string crcText = "123456789";
   check(frameCheck(std::vector<uint8_t>(crcText.begin(), crcText.end())) == 0x906E, "CRC-16/X-25 reference check");
   const std::vector<uint8_t> hello = {'h', 'e', 'l', 'l', 'o'};

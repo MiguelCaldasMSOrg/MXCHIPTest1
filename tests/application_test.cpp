@@ -201,13 +201,13 @@ extern "C" {
 }
 
 int main() {
-  if (AppConfig::kLoRaEnabled) {
+  if (AppConfig::kLoRaEnabled || AppConfig::kRtcEnabled) {
     RadioBridge::begin();
     RadioBridge::update();
-    check(!AudioTests::begin(), "audio must be inactive in LoRa mode");
+    check(!AudioTests::begin(), "audio must be inactive in LoRa and RTC modes");
     check(FakeHardware::outputConstructions == 0 && FakeHardware::inputConstructions == 0, "inactive ASK and audio code must not configure Grove pins");
     check(FakeHardware::timerCallback == nullptr && audioInitializations == 0, "inactive modes must not initialize timers or the audio codec");
-    std::cout << "PASS: LoRa mode leaves ASK/audio peripherals inactive\n";
+    std::cout << "PASS: LoRa/RTC mode leaves ASK/audio peripherals inactive\n";
   } else if (AppConfig::kAudioEnabled) {
     testAudioMode();
   } else {

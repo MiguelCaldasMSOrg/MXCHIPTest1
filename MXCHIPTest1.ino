@@ -3,6 +3,7 @@
 #include "src/AudioTests.h"
 #include "src/LoRaBridge.h"
 #include "src/RadioBridge.h"
+#include "src/RtcTests.h"
 
 namespace {
   constexpr unsigned long kBlinkIntervalMs = 500;
@@ -67,6 +68,16 @@ static void advanceRgbTest() {
   Screen.print(2, status);
 }
 
+static void updateRtcResultLed() {
+  static RtcTests::Status shown = RtcTests::Status::NotReady;
+  const RtcTests::Status current = RtcTests::status();
+  if (current == shown) {
+    return;
+  }
+  shown = current;
+  rgbLed.setColor(current == RtcTests::Status::Failed ? 64 : 0, current == RtcTests::Status::Passed ? 64 : 0, current == RtcTests::Status::Testing ? 64 : 0);
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -78,10 +89,22 @@ void setup() {
   Screen.init();
   Screen.clean();
   Screen.print(0, "MXCHIP AZ3166");
-  Screen.print(1, AppConfig::kAudioEnabled ? "Audio init..." : "Audio suspended");
+  Screen.print(1, AppConfig::kRtcEnabled ? "RTC init..." : (AppConfig::kAudioEnabled ? "Audio init..." : "Audio suspended"));
   Screen.print(2, "Ready");
 
   Serial.println("MXCHIP AZ3166 test sketch started.");
+  if (AppConfig::kRtcEnabled) {
+    Serial.println(AppConfig::kDs1307Enabled ? F("Grove RTC v1.2 (DS1307, 0x68) mode.") : F("Grove High Precision RTC v1.0 mode."));
+    RtcTests::printHelp();
+    if (!RtcTests::begin()) {
+      updateRtcResultLed();
+      return;
+    }
+    RtcTests::runFull();
+    updateRtcResultLed();
+    return;
+  }
+
   Serial.println("Press button A to cycle RGB colors and brightness.");
   if (AppConfig::kAudioEnabled) {
     if (AudioTests::begin()) {
@@ -101,12 +124,17 @@ void loop() {
   if (AppConfig::kAudioEnabled) {
     AudioTests::update();
   }
-  const unsigned long now = millis();
-  if (buttonA.pressedEdge(now)) {
-    advanceRgbTest();
+  if (buttonA.pressedEdge(millis())) {
+    if (AppConfig::kRtcEnabled) {
+      RtcTests::runFull();
+    } else {
+      advanceRgbTest();
+    }
   }
-  if (buttonB.pressedEdge(now)) {
-    if (AppConfig::kAudioEnabled) {
+  if (buttonB.pressedEdge(millis())) {
+    if (AppConfig::kRtcEnabled) {
+      RtcTests::setToBuildTime();
+    } else if (AppConfig::kAudioEnabled) {
       AudioTests::advance();
     } else {
       Serial.println("Button B: audio suspended in the selected radio mode.");
@@ -115,18 +143,25 @@ void loop() {
       }
     }
   }
-  if (AppConfig::kLoRaEnabled) {
+  if (AppConfig::kRtcEnabled) {
+    while (Serial.available() > 0) {
+      RtcTests::handleSerial(static_cast<char>(Serial.read()));
+    }
+    RtcTests::updateDisplay();
+    updateRtcResultLed();
+  } else if (AppConfig::kLoRaEnabled) {
     LoRaBridge::update();
   } else {
     RadioBridge::update();
   }
 
+  const unsigned long now = millis();
   if (now - lastBlinkMs >= kBlinkIntervalMs) {
     lastBlinkMs = now;
     ledOn = !ledOn;
     digitalWrite(LED_BUILTIN, ledOn ? HIGH : LOW);
   }
-  if (now - lastDisplayMs >= kDisplayIntervalMs) {
+  if (!AppConfig::kRtcEnabled && now - lastDisplayMs >= kDisplayIntervalMs) {
     lastDisplayMs = now;
     char uptime[17];
     snprintf(uptime, sizeof(uptime), "Uptime: %lus", now / 1000);

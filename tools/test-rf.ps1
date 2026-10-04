@@ -3,7 +3,7 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $outputDirectory = Join-Path $projectRoot "_build"
 New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 
-foreach ($mode in @(0, 1, 2)) {
+foreach ($mode in @(0, 1, 2, 3, 4)) {
   $executable = Join-Path $outputDirectory "rf_receiver_test-$mode.exe"
   & g++ -std=c++11 -Wall -Wextra -Werror -pedantic "-DMXCHIP_TEST_MODE=$mode" -I (Join-Path $projectRoot "src") (Join-Path (Join-Path $projectRoot "tests") "rf_receiver_test.cpp") -o $executable
   if ($LASTEXITCODE -ne 0) {
@@ -54,4 +54,16 @@ if ($LASTEXITCODE -ne 0) {
 & $loraProtocolTest
 if ($LASTEXITCODE -ne 0) {
   throw "LoRa UART/protocol tests failed with exit code $LASTEXITCODE."
+}
+
+foreach ($mode in @(3, 4)) {
+  $rtcTest = Join-Path $outputDirectory "rtc_test-$mode.exe"
+  & g++ -std=c++11 -Wall -Wextra -Werror -pedantic "-DMXCHIP_TEST_MODE=$mode" -I (Join-Path $testDirectory "stubs") -I $sourceDirectory (Join-Path $testDirectory "rtc_test.cpp") (Join-Path $sourceDirectory "RtcTests.cpp") (Join-Path $sourceDirectory "RtcClock.cpp") -o $rtcTest
+  if ($LASTEXITCODE -ne 0) {
+    throw "RTC test compilation failed for mode $mode with exit code $LASTEXITCODE."
+  }
+  & $rtcTest
+  if ($LASTEXITCODE -ne 0) {
+    throw "RTC tests failed for mode $mode with exit code $LASTEXITCODE."
+  }
 }
