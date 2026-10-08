@@ -1,9 +1,15 @@
 #include <RGB_LED.h>
 #include "src/AppConfig.h"
 #include "src/AudioTests.h"
+#include "src/GroveEInkTests.h"
+#include "src/GroveOledTests.h"
 #include "src/LoRaBridge.h"
+#include "src/OnboardTests.h"
 #include "src/RadioBridge.h"
 #include "src/RtcTests.h"
+#include "src/SecureProvisioningMode.h"
+#include "src/WiFiProvisioning.h"
+#include "src/WiFiTests.h"
 
 namespace {
   constexpr unsigned long kBlinkIntervalMs = 500;
@@ -89,10 +95,23 @@ void setup() {
   Screen.init();
   Screen.clean();
   Screen.print(0, "MXCHIP AZ3166");
-  Screen.print(1, AppConfig::kRtcEnabled ? "RTC init..." : (AppConfig::kAudioEnabled ? "Audio init..." : "Audio suspended"));
+  Screen.print(
+    1,
+    AppConfig::kRtcEnabled
+      ? "RTC init..."
+      : (AppConfig::kWiFiEnabled ? "Wi-Fi init..." : (AppConfig::kWiFiProvisioningEnabled ? "Wi-Fi provision" : (AppConfig::kGroveOledEnabled ? "Grove OLED init" : (AppConfig::kGroveEInkEnabled ? "Grove E-ink init" : (AppConfig::kAudioEnabled ? "Audio init..." : "Audio suspended")))))
+  );
   Screen.print(2, "Ready");
 
   Serial.println("MXCHIP AZ3166 test sketch started.");
+  if (AppConfig::kSecureProvisioningEnabled) {
+    SecureProvisioningMode::begin();
+    return;
+  }
+  if (AppConfig::kOnboardTestsEnabled) {
+    OnboardTests::begin();
+    return;
+  }
   if (AppConfig::kRtcEnabled) {
     Serial.println(AppConfig::kDs1307Enabled ? F("Grove RTC v1.2 (DS1307, 0x68) mode.") : F("Grove High Precision RTC v1.0 mode."));
     RtcTests::printHelp();
@@ -102,6 +121,22 @@ void setup() {
     }
     RtcTests::runFull();
     updateRtcResultLed();
+    return;
+  }
+  if (AppConfig::kWiFiEnabled) {
+    WiFiTests::begin();
+    return;
+  }
+  if (AppConfig::kWiFiProvisioningEnabled) {
+    WiFiProvisioning::begin();
+    return;
+  }
+  if (AppConfig::kGroveOledEnabled) {
+    GroveOledTests::begin();
+    return;
+  }
+  if (AppConfig::kGroveEInkEnabled) {
+    GroveEInkTests::begin();
     return;
   }
 
@@ -125,15 +160,39 @@ void loop() {
     AudioTests::update();
   }
   if (buttonA.pressedEdge(millis())) {
-    if (AppConfig::kRtcEnabled) {
+    if (AppConfig::kSecureProvisioningEnabled) {
+      SecureProvisioningMode::authorize();
+    } else if (AppConfig::kOnboardTestsEnabled) {
+      OnboardTests::buttonA();
+    } else if (AppConfig::kRtcEnabled) {
       RtcTests::runFull();
+    } else if (AppConfig::kWiFiEnabled) {
+      WiFiTests::report();
+    } else if (AppConfig::kWiFiProvisioningEnabled) {
+      Serial.println(F("Complete provisioning over USB serial."));
+    } else if (AppConfig::kGroveOledEnabled) {
+      GroveOledTests::nextPattern();
+    } else if (AppConfig::kGroveEInkEnabled) {
+      GroveEInkTests::requestRefresh();
     } else {
       advanceRgbTest();
     }
   }
   if (buttonB.pressedEdge(millis())) {
-    if (AppConfig::kRtcEnabled) {
+    if (AppConfig::kSecureProvisioningEnabled) {
+      SecureProvisioningMode::abort();
+    } else if (AppConfig::kOnboardTestsEnabled) {
+      OnboardTests::buttonB();
+    } else if (AppConfig::kRtcEnabled) {
       RtcTests::setToBuildTime();
+    } else if (AppConfig::kWiFiEnabled) {
+      WiFiTests::report();
+    } else if (AppConfig::kWiFiProvisioningEnabled) {
+      Serial.println(F("Complete provisioning over USB serial."));
+    } else if (AppConfig::kGroveOledEnabled) {
+      GroveOledTests::nextPattern();
+    } else if (AppConfig::kGroveEInkEnabled) {
+      GroveEInkTests::requestRefresh();
     } else if (AppConfig::kAudioEnabled) {
       AudioTests::advance();
     } else {
@@ -143,12 +202,32 @@ void loop() {
       }
     }
   }
-  if (AppConfig::kRtcEnabled) {
+  if (AppConfig::kSecureProvisioningEnabled) {
+    SecureProvisioningMode::update();
+  } else if (AppConfig::kOnboardTestsEnabled) {
+    while (Serial.available() > 0) {
+      const int value = Serial.read();
+      if (value < 0) {
+        Serial.println(F("Diagnostic USB serial read failed."));
+        break;
+      }
+      OnboardTests::handleSerial(static_cast<char>(value));
+    }
+    OnboardTests::update();
+  } else if (AppConfig::kRtcEnabled) {
     while (Serial.available() > 0) {
       RtcTests::handleSerial(static_cast<char>(Serial.read()));
     }
     RtcTests::updateDisplay();
     updateRtcResultLed();
+  } else if (AppConfig::kWiFiEnabled) {
+    WiFiTests::update();
+  } else if (AppConfig::kWiFiProvisioningEnabled) {
+    WiFiProvisioning::update();
+  } else if (AppConfig::kGroveOledEnabled) {
+    GroveOledTests::update();
+  } else if (AppConfig::kGroveEInkEnabled) {
+    return;
   } else if (AppConfig::kLoRaEnabled) {
     LoRaBridge::update();
   } else {
@@ -161,7 +240,7 @@ void loop() {
     ledOn = !ledOn;
     digitalWrite(LED_BUILTIN, ledOn ? HIGH : LOW);
   }
-  if (!AppConfig::kRtcEnabled && now - lastDisplayMs >= kDisplayIntervalMs) {
+  if (AppConfig::kRadioEnabled && now - lastDisplayMs >= kDisplayIntervalMs) {
     lastDisplayMs = now;
     char uptime[17];
     snprintf(uptime, sizeof(uptime), "Uptime: %lus", now / 1000);

@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/STMicroelectronics/STSELib",
+  "tag": "v1.1.11",
+  "commit": "01f494046ee1df593601e40371224969e20402d4",
+  "license": "BSD-3-Clause",
+  "runtimeDirectories": ["api", "certificate", "core", "services"],
+  "runtimeHeader": "stselib.h",
+  "sourceModifications": []
+}

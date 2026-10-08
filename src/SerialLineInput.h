@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include "SensitiveMemory.h"
 
 template <size_t MaxPayloadLength, size_t QueueDepth> class SerialLineInput {
   public:
@@ -19,6 +20,15 @@ template <size_t MaxPayloadLength, size_t QueueDepth> class SerialLineInput {
     InvalidCharacter,
     QueueFull
   };
+
+  void reset() {
+    SensitiveMemory::clear(line, sizeof(line));
+    SensitiveMemory::clear(messages, sizeof(messages));
+    memset(lengths, 0, sizeof(lengths));
+    used = head = count = 0;
+    skipLf = false;
+    error = Result::None;
+  }
 
   Result push(uint8_t value) {
     if (value == '\n' && skipLf) {
@@ -42,6 +52,7 @@ template <size_t MaxPayloadLength, size_t QueueDepth> class SerialLineInput {
           result = Result::Queued;
         }
       }
+      SensitiveMemory::clear(line, sizeof(line));
       used = 0;
       error = Result::None;
       return result;
@@ -65,6 +76,8 @@ template <size_t MaxPayloadLength, size_t QueueDepth> class SerialLineInput {
     }
     length = lengths[head];
     memcpy(payload, messages[head], length);
+    SensitiveMemory::clear(messages[head], sizeof(messages[head]));
+    lengths[head] = 0;
     head = (head + 1) % kQueueDepth;
     count--;
     return true;

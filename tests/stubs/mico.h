@@ -36,5 +36,6 @@ struct mico_i2c_message_t {
 OSStatus MicoI2cInitialize(mico_i2c_device_t *device);
 bool MicoI2cProbeDevice(mico_i2c_device_t *device, int retries);
 OSStatus MicoI2cBuildTxMessage(mico_i2c_message_t *message, const void *buffer, uint16_t length, uint16_t retries);
+OSStatus MicoI2cBuildRxMessage(mico_i2c_message_t *message, void *buffer, uint16_t length, uint16_t retries);
 OSStatus MicoI2cBuildCombinedMessage(mico_i2c_message_t *message, const void *tx, void *rx, uint16_t txLength, uint16_t rxLength, uint16_t retries);
 OSStatus MicoI2cTransfer(mico_i2c_device_t *device, mico_i2c_message_t *message, uint16_t count);

@@ -104,65 +104,35 @@ jobs:
           tar -xf /tmp/mxchip-openocd.tar --strip-components=1 -C "$openocd_dir"
 
       - name: Test protocol and gated application behavior
-        run: |
-          for mode in 0 1 2 3 4; do
-            g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
-              -DMXCHIP_TEST_MODE="$mode" -I src \
-              tests/rf_receiver_test.cpp -o "/tmp/rf-receiver-test-$mode"
-            "/tmp/rf-receiver-test-$mode"
-            g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
-              -DMXCHIP_TEST_MODE="$mode" -I tests/stubs -I src \
-              tests/application_test.cpp src/AudioTests.cpp src/RadioBridge.cpp src/RadioDisplay.cpp \
-              -o "/tmp/application-test-$mode"
-            "/tmp/application-test-$mode"
-            g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
-              -DMXCHIP_TEST_MODE="$mode" -I tests/stubs -I src \
-              tests/lora_bridge_test.cpp src/LoRaBridge.cpp src/RadioDisplay.cpp \
-              -o "/tmp/lora-bridge-test-$mode"
-            "/tmp/lora-bridge-test-$mode"
-          done
-          g++ -std=c++11 -Wall -Wextra -Werror -pedantic -I src \
-            tests/lora_test.cpp -o /tmp/lora-protocol-test
-          /tmp/lora-protocol-test
-          for mode in 3 4; do
-            g++ -std=c++11 -Wall -Wextra -Werror -pedantic \
-              -DMXCHIP_TEST_MODE="$mode" -I tests/stubs -I src \
-              tests/rtc_test.cpp src/RtcTests.cpp src/RtcClock.cpp -o "/tmp/rtc-test-$mode"
-            "/tmp/rtc-test-$mode"
-          done
-
-      - name: Test firmware packaging
         shell: pwsh
         run: |
-          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-package-firmware.ps1")
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-rf.ps1")
 
-      - name: Prepare sketch sources
+      - name: Test onboard diagnostic modes
+        shell: pwsh
         run: |
-          install -d /tmp/MXCHIPTest1
-          cp MXCHIPTest1.ino /tmp/MXCHIPTest1/
-          cp -a src /tmp/MXCHIPTest1/src
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-diagnostics.ps1")
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-stsafe.ps1")
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-supplied-keys.ps1")
+
+      - name: Test application firmware validation
+        shell: pwsh
+        run: |
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-validate-firmware.ps1")
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-board-maintenance.ps1")
 
       - name: Validate all supported configurations
-        run: |
-          for mode in 0 1 2 3 4; do
-            arduino-cli compile \
-              --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 \
-              --build-property "compiler.cpp.extra_flags=-DMXCHIP_TEST_MODE=$mode" \
-              --build-path "$RUNNER_TEMP/mode-$mode-build" \
-              /tmp/MXCHIPTest1
-          done
-
-      - name: Compile default release firmware
-        run: |
-          arduino-cli compile \
-            --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 \
-            --output-dir "$GITHUB_WORKSPACE/build" \
-            /tmp/MXCHIPTest1
-
-      - name: Package bootloader-inclusive firmware
         shell: pwsh
         run: |
-          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "package-firmware.ps1")
+          $builder = Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "build.ps1"
+          foreach ($mode in 0..15) {
+            & $builder -Mode $mode -BuildDirectory (Join-Path "_build" "mode-$mode")
+          }
+
+      - name: Compile default release firmware
+        shell: pwsh
+        run: |
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "build.ps1")
 
       - name: Create tag for manual release
         if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
@@ -187,12 +157,20 @@ jobs:
           if [[ "$VERSION" == *-* ]]; then
             options+=(--prerelease)
           fi
+          notes=$(cat <<'NOTES'
+          **Application-only firmware.** Upload `MXCHIPTest1.ino.bin` with Arduino CLI/OpenOCD at **`0x0800C000`**. Do **not** copy this binary onto the AZ3166 virtual disk.
+
+          Assets: application binary, ELF, map and the STSELib BSD-3-Clause license. No generic `.full.bin`, board-specific images, keys or recovery archives are published.
+
+          Firmware uses the default mode selected in `src/AppConfig.h`; compile another mode explicitly when needed. Supplied-key mode 15 has no migration, recovery, random-host-key or RDP automation and remains unqualified on personalized hardware.
+          NOTES
+          )
 
           assets=(
             build/MXCHIPTest1.ino.bin
-            build/MXCHIPTest1.full.bin
             build/MXCHIPTest1.ino.elf
             build/MXCHIPTest1.ino.map
+            libraries/STSELib/LICENSE.txt
           )
           for asset in "${assets[@]}"; do
             if [[ ! -s "$asset" ]]; then
@@ -200,4 +178,4 @@ jobs:
               exit 1
             fi
           done
-          gh release create "$VERSION" "${assets[@]}" "${options[@]}"
+          gh release create "$VERSION" "${assets[@]}" "${options[@]}" --notes "$notes"

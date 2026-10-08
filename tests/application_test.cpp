@@ -2,6 +2,7 @@
 #include <stm32412g_discovery_audio.h>
 #include "AppConfig.h"
 #include "AudioTests.h"
+#include "EInkPattern.h"
 #include "RadioBridge.h"
 
 #include <cstdlib>
@@ -149,6 +150,18 @@ namespace {
     check(FakeHardware::outputWrites == 0, "audio playback never drives the RF TX pin");
     std::cout << "PASS: audio-mode pin exclusion, all 15 clips, PCM bounds, mute, busy behavior, timeout boundary, and failures\n";
   }
+
+  void testEInkPattern() {
+    check(EInkPattern::kPlaneBytes == 2888, "e-ink plane size matches 152x152 pixels");
+    check(EInkPattern::byteAt(EInkPattern::Plane::Black, 0) == 0x00, "top band is black");
+    check(EInkPattern::byteAt(EInkPattern::Plane::Red, 0) == 0xFF, "top band excludes red");
+    const size_t middle = 75 * EInkPattern::kBytesPerRow;
+    check(EInkPattern::byteAt(EInkPattern::Plane::Black, middle) == 0xFF && EInkPattern::byteAt(EInkPattern::Plane::Red, middle) == 0xFF, "middle band is white");
+    const size_t bottom = 151 * EInkPattern::kBytesPerRow;
+    check(EInkPattern::byteAt(EInkPattern::Plane::Black, bottom) == 0xFF && EInkPattern::byteAt(EInkPattern::Plane::Red, bottom) == 0x00, "bottom band is red");
+    check(EInkPattern::byteAt(EInkPattern::Plane::Black, EInkPattern::kPlaneBytes) == 0xFF, "out-of-range e-ink data remains inactive");
+    std::cout << "PASS: e-ink dimensions and black/white/red planes\n";
+  }
 }
 
 extern "C" {
@@ -201,13 +214,14 @@ extern "C" {
 }
 
 int main() {
-  if (AppConfig::kLoRaEnabled || AppConfig::kRtcEnabled) {
+  testEInkPattern();
+  if (!AppConfig::kRadioEnabled) {
     RadioBridge::begin();
     RadioBridge::update();
     check(!AudioTests::begin(), "audio must be inactive in LoRa and RTC modes");
     check(FakeHardware::outputConstructions == 0 && FakeHardware::inputConstructions == 0, "inactive ASK and audio code must not configure Grove pins");
     check(FakeHardware::timerCallback == nullptr && audioInitializations == 0, "inactive modes must not initialize timers or the audio codec");
-    std::cout << "PASS: LoRa/RTC mode leaves ASK/audio peripherals inactive\n";
+    std::cout << "PASS: non-radio mode leaves ASK/audio peripherals inactive\n";
   } else if (AppConfig::kAudioEnabled) {
     testAudioMode();
   } else {

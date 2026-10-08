@@ -3,7 +3,7 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $outputDirectory = Join-Path $projectRoot "_build"
 New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 
-foreach ($mode in @(0, 1, 2, 3, 4)) {
+foreach ($mode in 0..15) {
   $executable = Join-Path $outputDirectory "rf_receiver_test-$mode.exe"
   & g++ -std=c++11 -Wall -Wextra -Werror -pedantic "-DMXCHIP_TEST_MODE=$mode" -I (Join-Path $projectRoot "src") (Join-Path (Join-Path $projectRoot "tests") "rf_receiver_test.cpp") -o $executable
   if ($LASTEXITCODE -ne 0) {

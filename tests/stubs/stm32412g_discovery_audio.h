@@ -9,7 +9,8 @@ enum HAL_StatusTypeDef {
 
 enum HAL_I2S_StateTypeDef {
   HAL_I2S_STATE_READY,
-  HAL_I2S_STATE_BUSY_TX
+  HAL_I2S_STATE_BUSY_TX,
+  HAL_I2S_STATE_BUSY_TX_RX
 };
 
 struct TestDmaHandle {
@@ -19,6 +20,9 @@ struct TestDmaHandle {
 struct I2S_HandleTypeDef {
   uint16_t TxXferSize;
   TestDmaHandle *hdmatx;
+  TestDmaHandle *hdmarx;
+
+  I2S_HandleTypeDef(uint16_t words, TestDmaHandle *tx, TestDmaHandle *rx = nullptr): TxXferSize(words), hdmatx(tx), hdmarx(rx) {}
 };
 
 constexpr uint8_t AUDIO_OK = 0;
@@ -38,5 +42,6 @@ extern "C" {
   HAL_I2S_StateTypeDef HAL_I2S_GetState(I2S_HandleTypeDef *handle);
   uint32_t HAL_I2S_GetError(I2S_HandleTypeDef *handle);
   HAL_StatusTypeDef HAL_I2S_Transmit_DMA(I2S_HandleTypeDef *handle, uint16_t *data, uint16_t words);
+  HAL_StatusTypeDef HAL_I2SEx_TransmitReceive_DMA(I2S_HandleTypeDef *handle, uint16_t *output, uint16_t *input, uint16_t words);
   HAL_StatusTypeDef HAL_I2S_DMAStop(I2S_HandleTypeDef *handle);
 }

@@ -37,6 +37,7 @@ class TestSerial {
   public:
   std::string output;
   std::deque<uint8_t> input;
+  bool failRead = false;
 
   void print(const __FlashStringHelper *value) {
     print(reinterpret_cast<const char *>(value));
@@ -61,13 +62,14 @@ class TestSerial {
     return static_cast<int>(input.size());
   }
   int read() {
-    if (input.empty()) {
+    if (input.empty() || failRead) {
       return -1;
     }
     const int value = input.front();
     input.pop_front();
     return value;
   }
+  void flush() {}
 };
 
 class TestScreen {
@@ -76,8 +78,8 @@ class TestScreen {
   unsigned int writes[4] = {};
   bool invalidWrite = false;
 
-  void print(unsigned int line, const char *text) {
-    if (line >= 4 || strlen(text) > 16) {
+  void print(unsigned int line, const char *text, bool scroll = false) {
+    if (line >= 4 || (!scroll && strlen(text) > 16)) {
       invalidWrite = true;
       return;
     }

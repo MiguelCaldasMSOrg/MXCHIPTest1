@@ -1,0 +1,9 @@
+# Preserve the exact upstream bytes used by the SHA-256 manifest on every OS.
+/LICENSE.txt -text
+/src/stselib.h -text
+/src/api/** -text
+/src/certificate/** -text
+/src/core/** -text
+/src/services/** -text
+/upstream.json text eol=lf
+/upstream-files.sha256 text eol=lf

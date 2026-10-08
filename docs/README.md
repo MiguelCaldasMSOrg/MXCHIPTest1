@@ -1,11 +1,27 @@
-# Offline documentation mirrors
+# Documentation
+
+## Project guides
+
+- [Project README](../README.md): supported modes, build/upload instructions,
+  controls, tests and application-only release assets.
+- [Supplied STSAFE host keys](LEGACY-PROVISIONING.md): supplied-key-only setup,
+  original EEPROM behavior and chip-bound encryption. No data migration,
+  provisioning recovery or protection automation.
+- [Board maintenance](BOARD-MAINTENANCE.md): independently requested same-board
+  flash images and reversible ST-Link USB mass-storage presentation.
+
+These guides describe this repository's maintained functionality. The
+snapshots below are historical upstream references, not current project
+instructions.
+
+## Offline documentation mirrors
 
 These are complete local snapshots retained for later reference. The original
 mirrored files, including their cached images, scripts, stylesheets, and fonts,
 are kept unchanged. They are reference material, not part of the firmware build
 and not a separately maintained documentation distribution.
 
-## Entry points
+### Entry points
 
 | Snapshot | Local entry point | Original source |
 | --- | --- | --- |
@@ -19,7 +35,7 @@ mirrored site. Some search features and links still use their original online
 services. Snapshot content may describe different SDK or software versions
 from this project's current configuration.
 
-## Upstream licenses and notices
+### Upstream licenses and notices
 
 **The project's Unlicense does not apply to these mirrored materials.**
 Original copyright, attribution, trademark, and file-specific notices remain
@@ -43,7 +59,7 @@ reference; copyright ownership is identified by the original files and their
 upstream projects. Font and other file-specific terms must not be replaced by
 the license of the surrounding documentation project.
 
-## Cached third-party images: licensing condition
+### Cached third-party images: licensing condition
 
 **Redistribution permissions for the following cached external assets have not
 been independently verified.** They are retained as part of the complete

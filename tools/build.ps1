@@ -1,20 +1,50 @@
+param(
+  [ValidateRange(0, 15)][int]$Mode,
+  [string]$BuildDirectory
+)
+
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$buildPath = Join-Path $projectRoot "build"
+$buildPath = if ($BuildDirectory) {
+  if ([System.IO.Path]::IsPathRooted($BuildDirectory)) {
+    [System.IO.Path]::GetFullPath($BuildDirectory)
+  } else {
+    [System.IO.Path]::GetFullPath((Join-Path $projectRoot $BuildDirectory))
+  }
+} else {
+  Join-Path $projectRoot "build"
+}
 $buildSketchPath = Join-Path (Join-Path $projectRoot "_build") "MXCHIPTest1"
 $generatedSketchPath = Join-Path $buildPath "sketch"
 $databasePath = Join-Path $buildPath "compile_commands.json"
 $sketchPath = Join-Path $projectRoot "MXCHIPTest1.ino"
 $sourcePath = Join-Path $projectRoot "src"
+$libraryPath = Join-Path $projectRoot "libraries"
 $separator = [System.IO.Path]::DirectorySeparatorChar
+$normalBuild = Join-Path $projectRoot "build"
+$scratchRoot = (Join-Path $projectRoot "_build") + $separator
+if (($buildPath -ne $normalBuild -and -not $buildPath.StartsWith($scratchRoot, [StringComparison]::OrdinalIgnoreCase)) -or
+    $buildPath -eq $buildSketchPath -or $buildPath.StartsWith($buildSketchPath + $separator, [StringComparison]::OrdinalIgnoreCase)) {
+  throw "BuildDirectory must be build or a separate child of _build, never the staged sketch directory."
+}
 
 function Get-ProjectSources {
-  @(Get-Item -LiteralPath $sketchPath) + @(Get-ChildItem -LiteralPath $sourcePath -Recurse -File)
+  @(Get-Item -LiteralPath $sketchPath) + @(Get-ChildItem -LiteralPath $sourcePath -Recurse -File) + @(Get-ChildItem -LiteralPath $libraryPath -Recurse -File)
 }
 
 Push-Location $projectRoot
 try {
+  & (Join-Path $PSScriptRoot "verify-stselib.ps1")
+  $obsoleteFullImage = Join-Path $buildPath "MXCHIPTest1.full.bin"
+  if (Test-Path -LiteralPath $obsoleteFullImage) {
+    $obsolete = Get-Item -LiteralPath $obsoleteFullImage
+    if ($obsolete.PSIsContainer -or ($obsolete.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
+      throw "Refusing to remove an unexpected full-image path."
+    }
+    Remove-Item -LiteralPath $obsolete.FullName
+    Write-Output "Removed obsolete generated full image; builds are application-only."
+  }
   $sourceFiles = @(Get-ProjectSources)
   if (Test-Path -LiteralPath $buildSketchPath) {
     $staging = Get-Item -LiteralPath $buildSketchPath
@@ -35,7 +65,11 @@ try {
   }
 
   # The staged sketch deliberately excludes local upload-port metadata.
-  & arduino-cli compile --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 --build-path $buildPath --output-dir $buildPath $buildSketchPath
+  $modeArguments = @()
+  if ($PSBoundParameters.ContainsKey("Mode")) {
+    $modeArguments = @("--build-property", "compiler.cpp.extra_flags=-DMXCHIP_TEST_MODE=$Mode")
+  }
+  & arduino-cli compile --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 --libraries (Join-Path $buildSketchPath "libraries") --build-path $buildPath --output-dir $buildPath @modeArguments $buildSketchPath
   if ($LASTEXITCODE -ne 0) {
     throw "Arduino compilation failed with exit code $LASTEXITCODE."
   }
@@ -50,7 +84,8 @@ try {
     }
   }
 
-  & (Join-Path $PSScriptRoot "package-firmware.ps1")
+  & (Join-Path $PSScriptRoot "validate-firmware.ps1") -ApplicationPath (Join-Path $buildPath "MXCHIPTest1.ino.bin")
+  & (Join-Path $PSScriptRoot "verify-legacy-link.ps1") -BuildDirectory $buildPath
 
   $database = ConvertFrom-Json -InputObject (Get-Content -LiteralPath $databasePath -Raw)
   $database = @($database)

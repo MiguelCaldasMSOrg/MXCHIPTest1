@@ -2,8 +2,14 @@
 
 Arduino multi-peripheral test sketch for the Microsoft Azure IoT DevKit /
 MXCHIP AZ3166. The current default mode tests a Grove High Precision RTC v1.0
-(PCF85063TP) on the I2C Grove socket. The existing audio, ASK RF, LoRa, and
-Grove RTC v1.2 (DS1307) modes remain selectable.
+(PCF85063TP) on the I2C Grove socket. Sixteen independent modes cover Grove
+peripherals, onboard sensors/audio, Wi-Fi, storage, infrared and read-only
+security-chip diagnostics plus explicitly confirmed supplied-host-key setup.
+
+**Updates are application-only.** Use Arduino CLI/OpenOCD at `0x0800C000`;
+do not copy the release binary onto the `AZ3166` disk.
+See [build/upload instructions](#arduino-cli), [operating modes](#operating-modes),
+[test commands](#tests) and the [documentation index](docs/README.md).
 
 ## Project layout
 
@@ -14,7 +20,31 @@ Grove RTC v1.2 (DS1307) modes remain selectable.
   capture/restoration for both RTCs.
 - [src/RtcTests.cpp](src/RtcTests.cpp): PCF85063TP/DS1307 feature suites, serial
   commands, test status, and the live OLED clock.
-- [src/AppConfig.h](src/AppConfig.h): the single ASK/audio/LoRa/RTC mode setting.
+- [src/AppConfig.h](src/AppConfig.h): the single compile-time mode setting.
+- [src/OnboardTests.cpp](src/OnboardTests.cpp): controls for the independent
+  sensor, microphone, filesystem, network, IrDA and STSAFE diagnostics.
+- [src/SensorTests.cpp](src/SensorTests.cpp): checked native-I2C sensor
+  identities, configuration readback, calibrated readings and live changes.
+- [src/MicrophoneTests.cpp](src/MicrophoneTests.cpp): bounded RAM capture,
+  input statistics and explicitly requested, level-limited playback.
+- [src/FileSystemTests.cpp](src/FileSystemTests.cpp): exclusive test-file
+  creation, remounted verification, reboot retention and guarded cleanup.
+- [src/NetworkTests.cpp](src/NetworkTests.cpp) and
+  [src/NetworkTestConfig.h](src/NetworkTestConfig.h): public-endpoint
+  DNS/TCP/HTTP/NTP/TLS checks with an explicit public CA trust anchor.
+- [src/IrdaTests.cpp](src/IrdaTests.cpp) and
+  [src/SecurityChipTests.cpp](src/SecurityChipTests.cpp): bounded IrDA
+  transmission and non-destructive legacy HAL/full-middleware STSAFE tests.
+- [libraries/STSELib/](libraries/STSELib/): all upstream STSELib runtime
+  layers, pinned to v1.1.11, plus an AZ3166 native-I2C/mbedTLS platform port.
+- [src/HostKeyBlock.h](src/HostKeyBlock.h),
+  [src/SuppliedKeySetup.cpp](src/SuppliedKeySetup.cpp): supplied STSAFE host
+  keys and original-format STM32 key loaders, without application-data
+  conversion, journals, recovery, random host keys or protection automation.
+  The original core EEPROM implementation is not replaced or intercepted.
+- [docs/LEGACY-PROVISIONING.md](docs/LEGACY-PROVISIONING.md): architecture,
+  detailed supplied-key setup procedures and legacy limitations.
+  Hardware personalization remains unvalidated.
 - [src/AudioTests.cpp](src/AudioTests.cpp): bounded waveform, melody, and speech
   playback, including codec/DMA error handling.
 - [src/RadioBridge.cpp](src/RadioBridge.cpp): Grove pin ownership, USB serial
@@ -35,12 +65,17 @@ Grove RTC v1.2 (DS1307) modes remain selectable.
 - [src/generated/audio_test_sample.h](src/generated/audio_test_sample.h):
   pre-generated waveform tables and speech PCM.
 - [tests/](tests/): protocol and application regression tests.
-- [docs/](docs/README.md): complete offline documentation mirrors, source links,
-  and upstream licensing notes.
+- [docs/BOARD-MAINTENANCE.md](docs/BOARD-MAINTENANCE.md): confidential
+  same-board image creation and reversible board-side ST-Link mass-storage controls.
+- [docs/](docs/README.md): maintained project guides, historical offline
+  documentation mirrors, source links and upstream licensing notes.
 
 The hardware-independent radio protocols and existing audio/radio modules stay
 separate. RTC register/calendar handling is isolated from the interactive test
-harness, without dynamic allocation or a runtime driver framework. One
+harness, without dynamic allocation or a runtime driver framework. Shared
+[serial input](src/SerialLineInput.h) clears consumed/rejected buffers using
+[SensitiveMemory.h](src/SensitiveMemory.h); mode-specific code owns the
+validation, hardware actions and error messages. One
 compile-time mode selects the hardware path; changing a mode does not delete
 the other implementations.
 
@@ -73,13 +108,95 @@ Set `MXCHIP_TEST_MODE` in [src/AppConfig.h](src/AppConfig.h):
 | `2` | LoRa | Two UART-controlled E5 modules on P0/P14 and P2/P16; ASK/audio off. |
 | `3` (default) | High Precision RTC v1.0 | PCF85063TP at I2C `0x51`; radios/audio off. |
 | `4` | RTC v1.2 | DS1307 at I2C `0x68`; radios/audio off. |
+| `5` | Wi-Fi | Connect with credentials saved on the board; report SSID, IP, and RSSI. |
+| `6` | Grove OLED | Exercise the Grove 1.12-inch OLED v2.0 (SH1107) at I2C `0x3C`. |
+| `7` | Grove triple-color e-ink | Send a black/white/red test image over P0/P14 UART. |
+| `8` | Wi-Fi provisioning | Save credentials received over USB serial to STSAFE EEPROM. |
+| `9` | Onboard sensors | HTS221, LPS22HB, LSM6DSL and LIS2MDL on shared I2C; no Wi-Fi/audio/radios. |
+| `10` | Microphone | One-second codec/I2S DMA capture into RAM; optional limited headphone playback. |
+| `11` | Filesystem | Dedicated 4 KiB test file on the QSPI filesystem partition; no automatic formatting. |
+| `12` | Network services | Saved Wi-Fi, DNS, TCP, HTTP, NTP and certificate-validated HTTPS; no Azure account. |
+| `13` | IrDA transmitter | Explicitly requested 38400-baud SIR test bursts on the onboard emitter. |
+| `14` | Security chip | STSELib metadata, binary echo, hardware RNG and public-vector ECDSA verification; no personalization. |
+| `15` | Supplied STSAFE host keys | Explicit host-tool/Button A setup only; no data conversion, recovery, random host keys or RDP changes. |
 
 The active paths are derived from this one setting; conflicting or invalid
-settings fail at compile time. All five implementations and the audio samples
+settings fail at compile time. All sixteen implementations and the audio samples
 remain in the project. Existing `MXCHIP_ENABLE_AUDIO_TESTS=0/1` compiler overrides still select
 the old ASK/audio modes when no new mode override is supplied.
-The release workflow validates all five configurations and builds its default
+The release workflow validates all sixteen configurations and builds its default
 firmware from the same `MXCHIP_TEST_MODE` setting, without a separate mode override.
+
+Wi-Fi mode uses the SSID and password already stored in the board's secure
+EEPROM; credentials are not compiled into this project. It reports connection
+failure explicitly on the onboard OLED and USB serial console. It checks live
+connection status every five seconds, clearing stale IP/RSSI values on
+disconnect and reporting a restored connection without forcing reassociation.
+Press either button to report status immediately.
+
+Wi-Fi credentials are stored in the board's STSAFE secure EEPROM, not STM32
+application flash, and survive normal Arduino compilation and reflashing. They
+can be replaced through either of these local-only paths:
+
+- Hold Button A during reset to enter the board's built-in configuration
+  console, then use `set_wifissid` and `set_wifipwd`.
+- Run `.\tools\configure-wifi.ps1`; it prompts for the password securely and
+  drives that same console without writing credentials to files or command-line
+  arguments.
+- Compile mode `8`, open USB serial at 115200 baud, type `PROVISION`, then send
+  the SSID and password as separate lines. Type `-` instead of a password for
+  an open network. Reflash another mode after provisioning.
+
+Mode `8` and the script validate lengths, surface storage errors, and never
+print the password. Erasing or replacing the STSAFE device is outside normal
+application reflashing and can remove the stored settings.
+
+Mode `8` accepts up to **32 SSID characters and 64 password characters**.
+The unmodified SDK configuration console counts the terminating NUL in its
+limits, so its host helper accepts **31/63 characters**; use mode `8` for the
+full-length values. Both paths accept printable ASCII, with `-` selecting an
+open network in mode `8` and an empty password in the console helper.
+The SSID and password are separate SDK writes: a failure can leave partially
+updated settings. Errors do not echo console responses or claim atomicity;
+re-enter both values after a reported save failure.
+
+Legacy host-key provisioning is a different operation from saving Wi-Fi
+settings. Mode `15` plus [provision-stsafe.ps1](tools/provision-stsafe.ps1)
+installs **only your supplied MAC/cipher keys** and legacy STM32 key loaders,
+with typed confirmation and physical Button A authorization. A missing
+chip-internal local-envelope key is generated; this is distinct from random
+host-key generation. The encryption remains bound to that STSAFE, even if
+another board uses the same host keys.
+
+No application data is read, converted or initialized by the new setup code.
+**Existing plaintext is not preserved as usable encrypted data.** Once the
+loaders activate the original encrypted path, legacy reads can fail and can
+overwrite invalid envelopes with zero-filled replacements. There is no
+journal, backup, resume/restore or RDP automation. The original core EEPROM
+and configuration console remain unchanged: `enable_secure 1` remains its
+historical operation, and its level-2/3 commands remain unsupported.
+Read the [full provisioning guide](docs/LEGACY-PROVISIONING.md) first.
+
+Grove OLED mode uses the shared I2C connector at 3.3 V and requires no additional
+Arduino library. It detects the display before sending the SH1107 initialization
+sequence, then cycles checkerboard, vertical-bar, horizontal-bar, and border
+patterns every three seconds. These patterns exercise every page and pixel
+column. Press either button to advance immediately.
+
+The onboard OLED and the Grove OLED both use I2C address `0x3C`. In mode `6`,
+the SH1107 initialization therefore also reaches the onboard display, leaving
+its output upside down and horizontally mirrored; this is expected for this
+test. All other modes never invoke the Grove driver and continue to
+initialize and use the onboard display through the board's original `Screen`
+API, preserving their existing orientation and behavior.
+
+Grove e-ink mode uses the P0/P14 connector as a 230400-baud UART: the module's
+TX signal connects to P0 (`PB_0`) and its RX signal connects to P14 (`PB_14`).
+At startup it performs the module's `'a'`/`'b'` handshake and sends a 152x152
+test image with black, white, and red horizontal bands. The transfer follows
+Seeed's required 76-byte pacing. Because frequent refreshes can permanently
+damage or ghost the panel, both buttons reject another refresh until 180
+seconds have elapsed. Leave the Grove adapter at 3.3 V.
 
 **Power off before changing Grove modules.** LoRa-E5 drives Grove pin 1 as its
 UART output, whereas the ASK transmitter expects that same wire to be driven
@@ -87,6 +204,12 @@ by the DevKit. Disconnect the E5 modules before uploading ASK or audio firmware,
 and disconnect the ASK transmitter before using audio mode. To switch from ASK
 to LoRa, flash LoRa mode with both module cables unplugged, then power off,
 connect the E5 modules, and power back on.
+
+**For microphone mode `10`, disconnect Grove peripherals before powering on.**
+The audio codec shares expansion pins, including P14 (`PB_14`, I2S input),
+P16 (`PC_6`, master clock), and the P1/P2 codec-control bus. No new diagnostic
+mode initializes the ASK/LoRa or Grove display drivers. The normal onboard
+OLED initialization and orientation are retained.
 
 ### Grove High Precision RTC v1.0 power
 
@@ -183,10 +306,12 @@ the full-package installer merely to upgrade already-working interfaces.
 
 The local upload defaults are stored in [sketch.yaml](sketch.yaml). The build script mirrors
 the release workflow: it explicitly targets the MXCHIP AZ3166 and compiles a
-fresh staged copy of the sketch and complete `src/` tree under
+fresh staged copy of the sketch, complete `src/` tree and project-local
+`libraries/` under
 `_build/MXCHIPTest1`, without the local upload-port metadata. A board does not
 need to be connected to compile. The build rejects source changes made during
 compilation, so rebuild if it reports that the source snapshot changed.
+It also verifies the pinned STSELib source hashes before compiling.
 
 ```powershell
 .\tools\build.ps1
@@ -198,6 +323,25 @@ arduino-cli monitor -p COM8 -c baudrate=115200
 `COM8` is an example; use the connected board's reported port. The explicit
 `--port` overrides the saved local default.
 
+To keep provisioning and normal application binaries separate without editing
+the source default:
+
+```powershell
+.\tools\build.ps1 -Mode 15 -BuildDirectory _build\provisioning
+.\tools\build.ps1 -Mode 9 -BuildDirectory _build\production
+```
+
+These commands compile only. Run them sequentially because the staged source
+directory is shared. The build also verifies that the original core EEPROM
+implementation is linked, with no local replacement/interception.
+
+For direct compilation, include the **project-local libraries** explicitly:
+
+```powershell
+arduino-cli compile --port COM8 --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 --libraries .\libraries --build-property "compiler.cpp.extra_flags=-DMXCHIP_TEST_MODE=14" --build-path _build\stselib-mode-14 .
+arduino-cli upload --port COM8 --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 --input-dir _build\stselib-mode-14 .
+```
+
 The build script also refreshes `build/compile_commands.json`, which the
 workspace uses to configure C/C++ IntelliSense for the MXCHIP core and libraries.
 It adds entries for the original sketch and every C/C++ source file, rather
@@ -205,6 +349,12 @@ than only their generated build copies. The `.ino` entry injects `Arduino.h`
 and selects C++, matching the sketch's compilation environment.
 
 ## Arduino IDE
+
+The CLI build script is the reproducible path and does not modify your global
+Arduino installation. To compile with Arduino IDE, install the bundled
+[STSELib library folder](libraries/STSELib/) into your sketchbook's `libraries`
+directory first. Use this pinned local port, not an unrelated Library Manager
+package with the same name.
 
 Open [MXCHIPTest1.ino](MXCHIPTest1.ino), select **MXCHIP AZ3166**, and select the
 board's actual serial port. Change the mode in
@@ -220,12 +370,214 @@ heartbeat, not a test result; it pauses while the RTC's blocking self-test runs.
 | `0`, `1` | ASK reception on the top row, audio/RGB status and uptime below. | Cycle RGB colors/intensities. | Play the next audio clip in mode `1`; report audio suspended in mode `0`. | Queue ASK text, or reject TX in audio mode. |
 | `2` | Initialize both LoRa modules; display received text, test status, RGB and uptime. | Cycle RGB colors/intensities. | Report audio suspended. | Queue LoRa round-trip text. |
 | `3`, `4` | Detect RTC, initialize invalid/untrusted time to the compile timestamp, run the suite, then show date/time. | Rerun the RTC suite. | Set RTC to the compile timestamp. | RTC commands described below. |
+| `5` | Connect to saved Wi-Fi and show IP/RSSI. | Report status now. | Report status now. | None. |
+| `6` | Detect the external SH1107 and cycle full-panel patterns. | Next pattern. | Next pattern. | None. |
+| `7` | Handshake with the e-ink module and send three color bands once. | Refresh after the 180-second guard. | Refresh after the 180-second guard. | None. |
+| `8` | Wait for explicit USB-serial provisioning input. | Print a serial reminder. | Print a serial reminder. | `PROVISION`, SSID, then password on separate lines. |
+| `9` | Check sensor identities/configuration, then sample every two seconds. | Next sensor page. | Sample now. | `a`, `b`, `h`/`?`. |
+| `10` | Initialize the codec muted; do not record automatically. | Record one second. | Play the last completed recording. | `a`, `b`, `h`/`?`. |
+| `11` | Create/verify only the dedicated test file. | Rerun without overwriting existing data. | Verify only. | `a`, `b`, `c` to clean up, `h`/`?`. |
+| `12` | Run one public-endpoint network test. | Rerun. | Print help. | `a`, `b`, `h`/`?`. |
+| `13` | Initialize IrDA; do not transmit automatically. | Send one known burst. | Print help. | `a`, `b`, `h`/`?`. |
+| `14` | Run non-destructive STSAFE HAL and middleware checks. | Rerun. | Print help. | `a`, `b`, `h`/`?`. |
+| `15` | Report key state; no automatic writes. | Authorize one supplied-key setup request for 60 seconds. | Cancel pending authorization/input; no undo. | `SK2` protocol via the supplied-key host tool; serial `a` cannot arm it. |
 
 In RTC modes, the RGB LED and OLED status show the last suite's pass/fail
 result, including suites invoked with serial `f`. The date/time rows update
 only when their text changes. A failed/invalid RTC read clears the stale time
 and reports an error; reconnecting a previously detected RTC can recover the
 display without resetting it.
+
+## Onboard diagnostics (modes 9-14)
+
+These modes use core-bundled drivers and the checked-in STSELib middleware;
+no network dependency download is needed to build.
+The sensor dashboard and microphone DMA update from the main loop. Filesystem,
+network and STSAFE operations are synchronous, so the heartbeat/buttons can
+pause during a test; socket I/O and the TLS handshake have finite time limits.
+
+### Sensors (9)
+
+The dashboard checks four `WHO_AM_I` values and readback-verifies configuration:
+HTS221 `0xBC` at `0x5F`, LPS22HB `0xB1` at `0x5C`, LSM6DSL `0x6A` at `0x6A`,
+and LIS2MDL `0x40` at `0x1E`. It uses the same native 100 kHz I2C transport as
+the RTC modes, avoiding the bundled sensor wrappers' bus reinitialization and
+unchecked initialization results.
+
+Readings include factory-calibrated humidity/temperature, pressure in hPa,
+acceleration in g, angular velocity in degrees/second and magnetic field in mG.
+USB output reports all axes and the number of changed samples. Button A cycles
+five OLED pages; gently rotate/tilt the board to observe changes. Missing
+devices, incorrect IDs, invalid calibration, failed readback, out-of-range
+readings and missing fresh data are reported, not displayed as stale success.
+These are functional/plausibility checks, not a metrological calibration or
+the IMU's built-in excitation/self-test suite.
+
+### Microphone (10)
+
+Button A captures exactly 16,000 frames at 16 kHz/16-bit, with two I2S slots,
+using finite full-duplex DMA and a two-second timeout. The NAU88C10 is mono:
+the slots are not two independent microphones. The output DMA contains silence
+and the headphone output is muted during capture.
+
+The console reports sample count, peak, RMS, DC offset, DC-removed RMS and
+clipped-sample count per slot. Constant/silent input is flagged; clipping is
+reported separately. The quietest 20 ms window's DC-removed RMS is reported as
+a noise-floor estimate in ADC counts, not a calibrated acoustic measurement.
+Record once in quiet and once while speaking to compare levels; no fixed
+background-noise threshold is asserted without an acoustic reference.
+Button B plays only a completed capture at volume 25/100, with
+PCM amplitude capped at 3,000 and faded edges. Busy requests and partial/failed
+captures cannot start playback. Recordings remain in RAM only: they are never
+saved to flash or sent over the network.
+
+### QSPI filesystem (11)
+
+Only `MXCTEST.BIN` on the `diagfs` mount of the SDK filesystem partition is
+used. A new file is created exclusively (no truncation), contains a versioned
+signature plus deterministic data, and must be exactly 4,096 bytes. Every
+byte is verified after sync/close/unmount/remount; an FNV-1a checksum is also
+reported. Existing files are checked before any write. Corrupt, partial or
+unrecognized files are left untouched for inspection.
+
+Reset or power-cycle to check retained data on the next startup; a valid
+pre-existing test file is verified without rewriting it. Send `c` only when
+finished: cleanup requires complete verification, removes only this file, then
+remounts and checks its absence. Other files, firmware partitions and STSAFE
+credentials are not touched. An unformatted filesystem reports an error;
+**the mode never formats automatically**. If initialization is necessary and
+the filesystem partition contains nothing you need, the exact uppercase serial
+line `FORMAT FILESYS` explicitly authorizes formatting that partition. This
+command erases all files there, not just the test file. No partial, misspelled
+or overlong confirmation is accepted, and other modes cannot invoke it.
+
+### Network services and Azure dependencies (12)
+
+The default endpoint is Let's Encrypt's public
+[valid ISRG Root X1 test site](https://valid-isrgrootx1.letsencrypt.org/).
+The host, path, expected HTTP statuses and public trust anchor are in
+[NetworkTestConfig.h](src/NetworkTestConfig.h). If changing the endpoint, update
+its trust anchor and expected statuses together.
+
+The mode uses saved credentials without invoking the SDK's automatic cloud
+telemetry, resolves IPv4 DNS, connects to TCP port 80, checks a complete HTTP
+301 response, obtains UTC through the core NTP client, then connects to port
+443. HTTPS must return complete headers with status 200. HTTP response headers
+are size-bounded, partial sends/receives are handled, redirects are not followed,
+and failures are reported per stage. Socket calls use a one-second timeout,
+request I/O has a ten-second limit, and TLS handshakes have a thirty-second
+limit. Wi-Fi association, DNS and NTP retain their core driver timeouts.
+
+TLS requires at least TLS 1.2, the ISRG Root X1 trust anchor and the expected
+hostname. Core 2.0.0 disables `MBEDTLS_HAVE_TIME_DATE`, so a verification callback
+additionally enforces validity dates on **each certificate in the chain**.
+An extra verification with an intentionally wrong hostname must fail. Ordinary
+NTP is not authenticated; the test is not a secure-time bootstrap. Expired or
+replaced site certificates/root anchors cause a failure, never an insecure
+fallback. The checked-in certificate is public, not a private key.
+
+"No mandatory Azure dependencies" means no Azure subscription, IoT Hub, DPS
+enrollment, device connection string, cloud account or cloud service keys are
+required. This mode sends only generic public HTTP requests, not sensor data,
+audio or credentials. The installed board SDK still contains Azure libraries;
+their presence is distinct from requiring provisioned Azure services.
+
+### Infrared transmitter (13)
+
+The bundled IrDA driver uses USART3/PB_10 at 38,400 baud in SIR mode. Button A
+sends `55 AA 00 FF 4D 58 43 48` once with a 500 ms transmit timeout and a
+one-second minimum interval. This is **not a 38 kHz NEC/TV-remote protocol**.
+Successful UART/HAL completion is reported only as a transmit-API result:
+optical output and received bytes need an external IrDA receiver or probe.
+There is no automatic/repeated emission and no receive-test claim.
+
+### Explicit STSAFE interactions (14)
+
+The project includes the complete upstream runtime of
+[STMicroelectronics STSELib v1.1.11](https://github.com/STMicroelectronics/STSELib/tree/01f494046ee1df593601e40371224969e20402d4):
+API, service, core and certificate-parser layers (109 source/license files).
+The [source pin](libraries/STSELib/upstream.json) and
+[SHA-256 manifest](libraries/STSELib/upstream-files.sha256) identify the exact
+unmodified release. The ST development-board example applications and their
+platform-specific CMOX binaries are not needed; this board uses its existing
+mbedTLS instead.
+
+Mode `14` first retains the legacy `Init_HAL`/`HAL_Get_Data_Zone` read check,
+then uses the new middleware to:
+
+- Verify the STSAFE-A100 silicon identity.
+- Query lifecycle, host-key presence, private-key slot count and all storage
+  partition metadata (sizes/types/access conditions, not stored contents).
+- Send and verify a binary echo through CRC-checked I2C frames.
+- Request two hardware random blocks and reject constant/repeated output.
+- Verify the RFC 6979 P-256/SHA-256 public test signature using both host
+  mbedTLS and the STSAFE itself; both must reject an altered signature.
+- Check the host platform's AES-128/256 ECB/CBC, fragmented/truncated CMAC and
+  HKDF bindings against NIST/RFC known-answer vectors.
+
+The diagnostic never reads Wi-Fi/password zones, dumps certificate contents,
+uses a private chip key, writes persistent data, personalizes the chip,
+creates/replaces keys, or changes STM32 option bytes/PCROP. Its known-answer
+keys are public test data, not production credentials. Random test output is
+cleared rather than logged; the RNG test is functional, not entropy certification.
+
+The core 2.0.0 STSAFE HAL returns status `10` when host/local-envelope key slots
+are not personalized. This is reported as a warning, not silently treated as a
+provisioned chip. The existing read handle can still be used for accessible
+certificate-zone reads. Other initialization failures or denied reads stop
+the test; neither case triggers personalization or a security-policy change.
+
+#### A100 compatibility and platform scope
+
+The AZ3166's A100 rejects STSELib's newer command-authorization-table query
+(`QUERY 0x24`). [Az3166StSafe.h](libraries/STSELib/src/Az3166StSafe.h) exposes
+`Az3166StSafe::begin(handler)` to use upstream's static-configuration option,
+still verify the A100 identity on the wire, and install a conservative
+**host-side** profile. Echo, RNG and public-key signature verification are
+sent without a host session; other frame-policy-controlled commands default
+to requiring a host session. Device-side access controls still apply. This
+profile does not write or weaken any chip policy.
+
+The adapter supports the onboard device at `0x20`, bus `0`, 100 kHz, with a
+512-byte checked staging buffer. It uses MiCO's shared I2C transactions, not a
+second `Wire` bus, and waits ST's A100 command timings before reading. This
+avoids the older MiCO driver's noisy assertions for expected busy-address NACKs.
+Retries remain bounded. Call the middleware serially from main/thread context,
+not from interrupts or concurrent callers; the CRC, transport and incremental
+CMAC contexts are shared.
+
+The active configuration enables STSAFE-A, NIST P-256/P-384, SHA-224/256/384/512,
+and AES host-session support. A110/A120-only features, Brainpool/Edwards curves,
+STSAFE-L and 1-Wire are not enabled. Host NIST key-wrap is not present in this
+board's mbedTLS build, so that platform entry point explicitly returns an error;
+wrapped key-provisioning helpers are not enabled. The A100's own local-envelope
+services remain in the middleware. Independent power-off is unsupported because
+the onboard chip has no switchable supply.
+
+This is **not** device-identity authentication, private-key signing verification,
+or a claim that host secure-channel personalization has been performed. Those
+operations need the correct existing key/slot policy and separately approved
+provisioning. Full mutable service APIs are present in the source; the diagnostic
+does not call them. Never run `enable_secure` or a middleware provisioning API
+as a generic test or retry.
+
+The legacy encrypted representation and the original core EEPROM implementation
+are retained. Mode `15` installs only supplied host keys and their original
+STM32 loaders, with explicit operator authorization. There is no journal,
+data conversion, recovery or boot-time locking. Existing plaintext is not
+converted into usable envelopes, and the original EEPROM failure behavior is
+unchanged; read the [supplied-key guide](docs/LEGACY-PROVISIONING.md) before use.
+Do not interchange the old and new libraries in the middle of an authenticated
+session. The host-key flash region still needs preserving if personalization
+is enabled later.
+
+#### Licensing
+
+STSELib retains its [BSD-3-Clause license](libraries/STSELib/LICENSE.txt), not
+the project's Unlicense. The license is also published with firmware release
+assets. When redistributing a binary containing this middleware, retain the
+copyright notice, license conditions and disclaimer with the binary's
+documentation/materials.
 
 ## RTC tests and commands (modes 3 and 4)
 
@@ -546,14 +898,19 @@ References: [Seeed's Grove v1.0 schematic](https://files.seeedstudio.com/product
 
 ## Tests
 
-The host tests require a `g++` compiler and can be
-run on Windows with:
+The host tests require PowerShell **7.2+** and `gcc`/`g++` on `PATH`.
+Run all suites on Windows with:
 
 ```powershell
 .\tools\test-rf.ps1
+.\tools\test-diagnostics.ps1
+.\tools\test-stsafe.ps1
+.\tools\test-supplied-keys.ps1
+.\tools\test-validate-firmware.ps1
+.\tools\test-board-maintenance.ps1
 ```
 
-They run in all five operating modes and cover framing, CRC, payload bounds,
+Mode-exclusion tests run in all sixteen modes and cover framing, CRC, payload bounds,
 sampling phase, timing variation, noise, exact transmitted bits, serial line
 endings, queue overflow, display scrolling, and the absence of local echo.
 Application tests also verify that audio mode never constructs or drives the
@@ -572,41 +929,131 @@ periodic interrupts, running/halted state restoration, millisecond-counter
 rollover, register dumps, and injected failures. Tests also verify compact RTC
 input storage and change-only OLED updates with error recovery.
 
-Firmware packaging has separate regression tests:
+Diagnostic tests additionally cover live Wi-Fi disconnect/reconnect reporting,
+exact credential limits, credential-buffer clearing, safe console errors,
+all four complete Grove OLED patterns, display transport failures,
+sensor calibration/units, every sensor
+page, failed configuration readback, stale/error data, exact capture sizes,
+DMA busy/timeout/error paths, PCM statistics and playback limits, partial
+filesystem I/O, file collisions/corruption, guarded cleanup, strict HTTP
+parsing, partial socket I/O, TLS hostname/date enforcement, missing time,
+bounded timeouts, IR rate limits, direct read-only STSAFE calls and disabled
+mode isolation. The public CA is parsed and its SHA-256 fingerprint checked.
+These host tests model hardware failures; they do not replace physical sensor,
+microphone, flash-retention or optical verification.
 
-```powershell
-.\tools\test-package-firmware.ps1
-```
+STSAFE transport tests compile the real upstream C API/frame/service code
+against the actual project I2C adapter and a fault-injected device model. They
+check command/response CRC, two-stage response reads, A100 identification,
+the static profile, access-denied statuses, NACK/retry limits, malformed frame
+lengths and fragment bounds. Upstream C/header extensions are isolated from
+the strict C++ checks on project code. `.\tools\verify-stselib.ps1` verifies
+the complete upstream hash manifest independently.
 
-These verify the reference checksum, vector-table checks, exact flash-size
-boundary, and unchanged bootloader/application bytes. All test suites run in
-GitHub Actions, which also compiles all five firmware configurations before
-publishing the default mode selected in [src/AppConfig.h](src/AppConfig.h).
+Supplied-key tests exercise the real setup backend with simulated STM32/STSAFE,
+the exact legacy key-loader ABI, key/protection preconditions, explicit
+partial failures, physical authorization, bounded input, the host workflow
+and rejection of removed actions. No application-data or option-byte write
+APIs are provided by the backend fixture. Embedded builds verify original-core
+EEPROM linkage. These checks are not a substitute for qualification on a spare
+board; no real provisioning/protection change was performed during development.
+
+Firmware validation tests check vectors, the exact application flash-size
+boundary, unchanged bytes and the absence of generic full-image generation.
+Maintenance tests use simulated devices; they do not read or flash a board.
+Windows-only ACL and updater-orchestration checks run locally; portable
+maintenance checks also run in GitHub Actions.
+
+Local and CI validation use the same PowerShell test/build entry points.
+The release workflow builds all sixteen modes and checks original EEPROM
+linkage and application-only image validity for every build, then publishes
+the source-selected default from [src/AppConfig.h](src/AppConfig.h).
 
 ## Firmware images
 
-Local builds place both images in `build/`, and GitHub releases publish both:
+Local builds and new GitHub releases provide **application-only firmware**:
 
 | Image | Contents | Upload method |
 | --- | --- | --- |
 | `MXCHIPTest1.ino.bin` | Application only, linked at `0x0800C000`. | Normal Arduino CLI/OpenOCD upload. |
-| `MXCHIPTest1.full.bin` | Factory 2.0.0 bootloader and padding, followed by the current application. | Copy to the `AZ3166` USB drive, or program explicitly at `0x08000000`. |
 
-The shared [packaging script](tools/package-firmware.ps1) verifies the reference
-firmware's SHA-256, retains its exact first 48 KiB through offset `0xC000`, and
-appends the compiled application. It also checks the application vector table
-and the combined image's flash size. The application-only binary is not modified.
+The [validation script](tools/validate-firmware.ps1) checks the stack/reset
+vectors and flash capacity without altering the application. The build no
+longer creates a bootloader-inclusive `.full.bin` and removes the obsolete
+generated `build/MXCHIPTest1.full.bin` if it exists. New releases do not publish
+that asset; earlier releases are unchanged.
 
-The complete image is useful for drag-and-drop flashing or bootloader recovery.
-It runs this project's sketch, not the default DevKit demonstration application.
-Normal application updates do not need to rewrite an intact bootloader.
-Do not use the full image with the standard application-offset upload recipe.
+Use Arduino CLI/OpenOCD to program the application at `0x0800C000`. **Do not
+drag this application-only binary onto the `AZ3166` drive.** This upload path
+preserves the preceding bootloader/host-key region. A generic image starting
+at `0x08000000` cannot preserve board-specific host keys unless constructed
+from that board's actual readable flash contents.
+
+### Board-specific backup images
+
+[build-board-image.ps1](tools/build-board-image.ps1) can explicitly create a
+**confidential same-board** image from two identical reads of the connected
+board's first 48 KiB (bootloader plus host provisioning region) and an
+already-built application. It does not flash anything. Output must be outside
+Git worktrees on a fixed local NTFS/ReFS disk and is restricted to the current
+Windows user. It is not part of normal builds or release assets.
+
+See [Board maintenance: detailed procedures and limitations](docs/BOARD-MAINTENANCE.md).
+
+```powershell
+pwsh
+.\tools\build-board-image.ps1 -WhatIf
+.\tools\build-board-image.ps1
+```
+
+STSAFE is a separate chip: its data and non-exportable keys are **not** in a
+STM32 flash image. A per-board image can retain matching STM32 host keys while
+the STSAFE remains on the same board, but cannot clone or factory-reset the
+secure element. RDP/PCROP can prevent reading host flash. Do not remove RDP
+to obtain a backup: reverting Level 1 to Level 0 erases STM32 flash.
+
+### Preventing accidental disk flashing
+
+The virtual disk is provided by the ST-Link interface, not by the Arduino
+application. [stlink-mass-storage.ps1](tools/stlink-mass-storage.ps1) prepares
+ST's authenticated vendor updater and performs a **board-side** reversible
+MSC disable/reenable operation. It never changes Windows device or mount
+settings. Read the [how-to](docs/BOARD-MAINTENANCE.md) before using it:
+this programs the ST-Link coprocessor and can change its USB ID. The bundled
+OpenOCD 0.10 cannot correctly handle the `3752` no-MSC personality; reenable
+MSC or configure newer compatible tooling for subsequent SWD operations.
+
+```powershell
+.\tools\stlink-mass-storage.ps1 -Action Status
+.\tools\stlink-mass-storage.ps1 -Action Setup -VendorZip C:\Downloads\en.stsw-link007.zip -AcceptVendorLicense
+.\tools\stlink-mass-storage.ps1 -Action Disabled -WhatIf
+.\tools\stlink-mass-storage.ps1 -Action Disabled
+.\tools\stlink-mass-storage.ps1 -Action Enabled
+```
+
+ST's STLinkUpgrade tool also documents a **Change type / without mass storage**
+firmware option for supported ST-Link interfaces. The local script uses the
+reversible `mscOffOpt`/`mscOnOpt` variants, never `mscAlwaysOff`.
+Changing firmware on this exact board has not been attempted during
+implementation. Do not treat either Windows hiding
+or mass-storage disabling as a substitute for secure key-backup/update design.
+
+Suppressing AutoPlay only prevents the Explorer prompt; it does **not**
+prevent mounting or writing. Removing a drive letter is weaker than disabling
+the interface, and its persistence can vary for virtual removable disks.
+Avoid a machine-wide `automount disable` for this one board: it affects other
+new volumes too. No USB firmware or Windows mount/device settings are changed
+by this project's build scripts.
+
+References: [ST-Link firmware release notes (RN0093)](https://www.st.com/resource/en/release_note/rn0093-firmware-upgrade-for-stlink-stlinkv2-stlinkv21-and-stlinkv3-boards-stmicroelectronics.pdf),
+[STLinkUpgrade / STSW-LINK007](https://www.st.com/en/development-tools/stsw-link007.html).
 
 ## Default firmware
 
 The repository includes the MXCHIP AZ3166 default firmware image at
 `firmware/devkit-firmware-2.0.0.bin`. It is kept separately from generated build
-outputs so it can be used to restore the board to its version 2.0.0 firmware.
+outputs for deliberate bootloader/factory recovery. It is not used by normal
+builds or included in new release assets.
 
 SHA-256:
 
@@ -614,9 +1061,11 @@ SHA-256:
 33a01378a40484f306777de1e11462918ca9901d1039d2e97ab55d60cc684300
 ```
 
-To restore it, connect the board over USB and copy the binary to the root of the
-`AZ3166` mass-storage device. The board flashes the image and restarts
-automatically. Do not disconnect the board while it is flashing.
+**Do not use this full reference image as a routine update on a personalized
+board.** It can overwrite matching STM32 host-key material and make encrypted
+STSAFE data inaccessible. Factory recovery is a separate, explicitly authorized
+operation requiring a suitable recovery plan. The USB virtual disk can flash
+such a binary automatically; merely copying it there is a firmware-write action.
 
 This reference image includes the bootloader. The generated
 `build/MXCHIPTest1.ino.bin` is application-only and is linked for flash address
@@ -638,6 +1087,9 @@ Alternatively, run the **Release** workflow manually and provide the version.
 Select **Build without creating a tag or release** to validate the release build
 without publishing it. The workflow compiles the sketch with MXCHIP board core
 2.0.0, creates the tag for non-dry manual runs, and publishes the generated
-application-only and bootloader-inclusive firmware images, along with the ELF
-and map files, in a GitHub release. Only those four named artifacts are
-published; build caches and compilation databases are not release assets.
+application-only binary, ELF, map and STSELib license in a GitHub release.
+Only those four named assets are published; full images, board-specific backups,
+build caches and compilation databases are not release assets.
+Every new release also includes an application-only upload warning in its
+release notes. Mode 15 is not the default release firmware and its
+personalization path still requires hardware qualification.

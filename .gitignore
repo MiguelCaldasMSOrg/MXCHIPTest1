@@ -28,6 +28,8 @@ _build/
 # Local secrets
 arduino_secrets.h
 secrets.h
+# Keep any private archives from the retired recovery tooling out of Git.
+*.stsafe-recovery.json
 
 # Operating system metadata
 .DS_Store
