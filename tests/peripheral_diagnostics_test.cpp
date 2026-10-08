@@ -148,13 +148,18 @@ int main() {
     FakeHardware::nowUs = 1000000;
     IrdaTests::transmit();
     check(irTransmissions == 2, "IR ready at one second");
+    for (unsigned int burst = 3; burst <= 10000; ++burst) {
+      FakeHardware::nowUs += 1000000;
+      IrdaTests::transmit();
+    }
+    check(irTransmissions == 10000 && Screen.lines[1] == "Sent 10000", "five-digit burst count is displayed without truncation");
     irResult = 1;
     FakeHardware::nowUs += 1000000;
     IrdaTests::transmit();
     check(Serial.output.find("IrDA FAIL: transmit") != std::string::npos, "IR failure reported");
     IrdaTests::begin();
     IrdaTests::transmit();
-    check(irTransmissions == 3, "failed init blocks TX");
+    check(irTransmissions == 10001, "failed init blocks TX");
   } else if (AppConfig::kSecurityChipEnabled) {
     check(irInitializations == 0 && chipInitializations == 1 && reads == 2 && frees == 1, "direct read-only STSAFE operations and cleanup");
     check(Serial.output.find("Contents were not printed") != std::string::npos, "no certificate data dump");

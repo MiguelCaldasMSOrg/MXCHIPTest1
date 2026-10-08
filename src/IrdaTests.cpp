@@ -56,7 +56,7 @@ namespace IrdaTests {
       return;
     }
     char text[17];
-    snprintf(text, sizeof(text), "Sent %lu bursts", static_cast<unsigned long>(++count));
+    snprintf(text, sizeof(text), "Sent %lu", static_cast<unsigned long>(++count));
     Screen.print(1, text);
     Serial.println(F("IrDA TX API completed: 55 AA 00 FF 4D 58 43 48 at 38400 baud. Optical/receiver verification remains pending."));
   }
