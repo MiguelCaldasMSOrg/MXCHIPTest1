@@ -199,10 +199,13 @@ function Resolve-MxOpenOcd {
   param([string]$Root, [Parameter(Mandatory)][string]$UsbPid)
   if (-not $Root) {
     $cli = (Get-Command arduino-cli -CommandType Application -ErrorAction Stop).Source
-    $result = Invoke-MxTool $cli @("config", "dump", "--format", "json") (Get-Location).Path
+    $result = Invoke-MxTool $cli @("config", "get", "directories.data", "--json") (Get-Location).Path
     Assert-MxNativeSuccess $result "Arduino CLI configuration"
-    $config = $result.Text | ConvertFrom-Json
-    $Root = Join-Path $config.config.directories.data "packages\AZ3166\tools\openocd\0.10.0"
+    $dataDirectory = $result.Text | ConvertFrom-Json
+    if ($dataDirectory -isnot [string] -or -not [IO.Path]::IsPathFullyQualified($dataDirectory)) {
+      throw "Arduino CLI did not return an absolute data directory for OpenOCD discovery."
+    }
+    $Root = Join-Path $dataDirectory "packages\AZ3166\tools\openocd\0.10.0"
   }
   $rootPath = (Resolve-Path -LiteralPath $Root -ErrorAction Stop).Path
   $exe = Join-Path $rootPath "bin\openocd.exe"

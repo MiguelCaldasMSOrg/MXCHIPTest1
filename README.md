@@ -334,6 +334,8 @@ the source default:
 These commands compile only. Run them sequentially because the staged source
 directory is shared. The build also verifies that the original core EEPROM
 implementation is linked, with no local replacement/interception.
+Tool discovery uses the effective Arduino CLI data directory, including its
+platform default when no explicit directory setting exists.
 
 For direct compilation, include the **project-local libraries** explicitly:
 

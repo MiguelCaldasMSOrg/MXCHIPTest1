@@ -2,10 +2,13 @@ param([Parameter(Mandatory)][string]$BuildDirectory, [string]$CompilerDirectory)
 
 $ErrorActionPreference = "Stop"
 if (-not $CompilerDirectory) {
-  $configText = & arduino-cli config dump --format json
+  $configText = & arduino-cli config get directories.data --json
   if ($LASTEXITCODE -ne 0) { throw "Could not locate Arduino compiler for link verification." }
-  $config = $configText | ConvertFrom-Json
-  $CompilerDirectory = Join-Path $config.config.directories.data "packages/AZ3166/tools/arm-none-eabi-gcc/5_4-2016q3/bin"
+  $dataDirectory = $configText | ConvertFrom-Json
+  if ($dataDirectory -isnot [string] -or -not [IO.Path]::IsPathFullyQualified($dataDirectory)) {
+    throw "Arduino CLI did not return an absolute data directory for link verification."
+  }
+  $CompilerDirectory = Join-Path $dataDirectory "packages/AZ3166/tools/arm-none-eabi-gcc/5_4-2016q3/bin"
 }
 $suffix = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { ".exe" } else { "" }
 $nm = Join-Path $CompilerDirectory ("arm-none-eabi-nm" + $suffix)

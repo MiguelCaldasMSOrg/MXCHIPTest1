@@ -111,6 +111,9 @@ try {
     & $module {
       function script:Invoke-MxTool {
         param($FilePath,$Arguments,$WorkingDirectory,$TimeoutSeconds,[switch]$NeverKill)
+        if (($Arguments -join ' ') -eq "config get directories.data --json") {
+          return [pscustomobject]@{ ExitCode=0; Text=($script:fakeArduinoData | ConvertTo-Json -Compress) }
+        }
         if (($Arguments -join ' ') -ne "--version") { throw "OpenOCD layout discovery must not touch the board." }
         [pscustomobject]@{ ExitCode=0; Text="xPack Open On-Chip Debugger 0.12.0+dev" }
       }
@@ -130,6 +133,19 @@ try {
       Remove-Item -LiteralPath (Join-Path $scripts "target\stm32f4x.cfg")
       Reject { Resolve-MxOpenOcd -Root $root -UsbPid "3752" } "incomplete script installation rejected"
       Write-Output "PASS: legacy, xPack and standard OpenOCD layouts resolved using version-only probes."
+      $dataRoot = Join-Path $fixture "arduino-data"
+      $bundledRoot = Join-Path $dataRoot "packages\AZ3166\tools\openocd\0.10.0"
+      $bundledScripts = Join-Path $bundledRoot "scripts"
+      $null = New-Item -ItemType Directory -Path (Join-Path $bundledRoot "bin"),(Join-Path $bundledScripts "interface"),(Join-Path $bundledScripts "target") -Force
+      foreach ($file in @((Join-Path $bundledRoot "bin\openocd.exe"),(Join-Path $bundledScripts "interface\stlink-v2-1.cfg"),(Join-Path $bundledScripts "target\stm32f4x.cfg"))) {
+        [IO.File]::WriteAllText($file, "test fixture, never executed")
+      }
+      & $module { param($Data) $script:fakeArduinoData = $Data } $dataRoot
+      $resolved = Resolve-MxOpenOcd -UsbPid "374B"
+      Assert ($resolved.Scripts -eq $bundledScripts) "Arduino effective setting works without a configuration-dump directories object"
+      & $module { $script:fakeArduinoData = "relative-data" }
+      Reject { Resolve-MxOpenOcd -UsbPid "374B" } "invalid effective data directory rejected"
+      Write-Output "PASS: effective Arduino data-directory discovery and malformed-setting rejection."
     } finally {
       & $module { param($Original) Set-Item Function:script:Invoke-MxTool -Value $Original } $originalInvoker
     }
