@@ -17,6 +17,18 @@ function Set-Word([byte[]]$Buffer, [int]$Offset, [uint32]$Value) {
   [Array]::Copy([BitConverter]::GetBytes($Value), 0, $Buffer, $Offset, 4)
 }
 
+$uploadRecipe = @(Get-Content -LiteralPath (Join-Path $PSScriptRoot "platform.local.txt") | Where-Object { $_.StartsWith("tools.openocd.upload.pattern=") })
+Assert ($uploadRecipe.Count -eq 1) "one saved Arduino upload recipe"
+Assert ($uploadRecipe[0].Contains('-f "interface\stlink.cfg"') -and $uploadRecipe[0].Contains('-c "transport select swd"') -and $uploadRecipe[0] -notmatch '(?i)hla') "native ST-Link interface and SWD transport remove both HLA deprecations"
+$uploadCommand = [regex]::Match($uploadRecipe[0], '-c "(program .*; shutdown)"$')
+Assert $uploadCommand.Success "upload recipe contains the expected programming command"
+foreach ($buildPath in @("_build\supplied-keys", "C:\Build with spaces\supplied-keys")) {
+  $expanded = $uploadCommand.Groups[1].Value.Replace("{build.path}", $buildPath).Replace("{build.project_name}", "MXCHIPTest1.ino")
+  $expected = 'program {' + $buildPath + '\MXCHIPTest1.ino.bin} verify reset 0x0800C000; shutdown'
+  Assert ($expanded -ceq $expected) "exactly one Tcl filename brace pair, including paths with spaces"
+}
+Write-Output "PASS: native ST-Link/SWD Arduino upload pairing, filename quoting and application address."
+
 $prefix = [byte[]]::new(0xC000)
 for ($index = 0; $index -lt $prefix.Length; $index++) { $prefix[$index] = ($index * 73 + 19) % 256 }
 Set-Word $prefix 0 0x20040000
@@ -51,6 +63,10 @@ Reject { New-MxSnapshotConfiguration $serial "1234" } "unrelated USB IDs blocked
 $restore = New-MxSnapshotRecoveryConfiguration $serial "374B" "running 00000004"
 Assert ($restore.Contains("`nresume`n") -and $restore.Contains("mww 0xE0042008 0x00000004") -and -not $restore.Contains("dump_image")) "recovery only restores execution/debug state"
 Reject { New-MxSnapshotRecoveryConfiguration $serial "374B" "running 0;reset" } "recovery state injection blocked"
+$modern = New-MxSnapshotConfiguration $serial "374B" -InterfaceScript "interface\stlink-hla.cfg"
+$modernRestore = New-MxSnapshotRecoveryConfiguration $serial "374B" "halted 00000004" -InterfaceScript "interface\stlink-hla.cfg"
+Assert ($modern.Contains('source [find {interface\stlink-hla.cfg}]') -and $modernRestore.Contains('source [find {interface\stlink-hla.cfg}]')) "selected HLA interface is used for snapshot and state restoration"
+Reject { New-MxSnapshotConfiguration $serial "374B" -InterfaceScript 'bad.cfg}; program evil' } "interface selection rejects Tcl injection"
 
 foreach ($state in @("Enabled", "Disabled")) {
   $args = @(New-MxMscArguments $serial $state)
@@ -109,10 +125,24 @@ try {
   if ($IsWindows) {
     $originalInvoker = & $module { (Get-Item Function:Invoke-MxTool).ScriptBlock }
     & $module {
+      $script:configurationFailure = $false
+      $script:configurationMissingAck = $false
+      $script:configurationInterface = ""
       function script:Invoke-MxTool {
         param($FilePath,$Arguments,$WorkingDirectory,$TimeoutSeconds,[switch]$NeverKill)
         if (($Arguments -join ' ') -eq "config get directories.data --json") {
           return [pscustomobject]@{ ExitCode=0; Text=($script:fakeArduinoData | ConvertTo-Json -Compress) }
+        }
+        if ($Arguments[-1] -ceq "shutdown") {
+          if ($Arguments.Count -ne 12 -or $Arguments[0] -cne "-s" -or $Arguments[2] -cne "-f" -or
+              $Arguments[4] -cne "-c" -or $Arguments[5] -cne "transport select hla_swd" -or
+              $Arguments[6] -cne "-f" -or $Arguments[7] -cne "target\stm32f4x.cfg" -or
+              $Arguments[8] -cne "-c" -or $Arguments[9] -cne "echo MXCHIP_HLA_CONFIG_OK" -or $Arguments[10] -cne "-c") {
+            throw "Expected only configuration parsing followed by shutdown, never init or target access."
+          }
+          $script:configurationInterface = $Arguments[3]
+          if ($script:configurationFailure) { return [pscustomobject]@{ ExitCode=1; Text="Debug adapter does not support hla_swd" } }
+          return [pscustomobject]@{ ExitCode=0; Text=$(if ($script:configurationMissingAck) { "shutdown" } else { "MXCHIP_HLA_CONFIG_OK" }) }
         }
         if (($Arguments -join ' ') -ne "--version") { throw "OpenOCD layout discovery must not touch the board." }
         [pscustomobject]@{ ExitCode=0; Text="xPack Open On-Chip Debugger 0.12.0+dev" }
@@ -128,11 +158,19 @@ try {
           [IO.File]::WriteAllText($file, "test fixture, never executed")
         }
         $resolved = Resolve-MxOpenOcd -Root $root -UsbPid "3752"
-        Assert ($resolved.Scripts -eq $scripts) "OpenOCD layout recognized: $relative"
+        Assert ($resolved.Scripts -eq $scripts -and $resolved.InterfaceScript -ceq "interface\stlink-v2-1.cfg") "legacy HLA layout recognized: $relative"
+        [IO.File]::WriteAllText((Join-Path $scripts "interface\stlink-hla.cfg"), "modern explicit HLA fixture")
+        $resolved = Resolve-MxOpenOcd -Root $root -UsbPid "3752"
+        Assert ($resolved.InterfaceScript -ceq "interface\stlink-hla.cfg" -and (& $module { $script:configurationInterface }) -ceq $resolved.InterfaceScript) "explicit HLA file preferred over the native legacy-name alias: $relative"
       }
+      & $module { $script:configurationFailure = $true }
+      Reject { Resolve-MxOpenOcd -Root $root -UsbPid "3752" } "unsupported HLA transport rejected before target access"
+      & $module { $script:configurationFailure = $false; $script:configurationMissingAck = $true }
+      Reject { Resolve-MxOpenOcd -Root $root -UsbPid "3752" } "missing configuration acknowledgement rejected"
+      & $module { $script:configurationMissingAck = $false }
       Remove-Item -LiteralPath (Join-Path $scripts "target\stm32f4x.cfg")
       Reject { Resolve-MxOpenOcd -Root $root -UsbPid "3752" } "incomplete script installation rejected"
-      Write-Output "PASS: legacy, xPack and standard OpenOCD layouts resolved using version-only probes."
+      Write-Output "PASS: legacy/xPack/standard layouts, explicit HLA selection and configuration-only transport validation."
       $dataRoot = Join-Path $fixture "arduino-data"
       $bundledRoot = Join-Path $dataRoot "packages\AZ3166\tools\openocd\0.10.0"
       $bundledScripts = Join-Path $bundledRoot "scripts"
@@ -206,11 +244,14 @@ try {
       }
       function script:Resolve-MxOpenOcd {
         param($Root,$UsbPid)
-        [pscustomobject]@{ Exe="fixture.exe"; Scripts="fixture"; Version="fixture OpenOCD" }
+        [pscustomobject]@{ Exe="fixture.exe"; Scripts="fixture"; InterfaceScript="interface\stlink-hla.cfg"; Version="fixture OpenOCD" }
       }
       function script:Invoke-MxTool {
         param($FilePath,$Arguments,$WorkingDirectory,$TimeoutSeconds,[switch]$NeverKill)
         $script:fakeCalls++
+        if (-not [IO.File]::ReadAllText($Arguments[-1]).Contains('source [find {interface\stlink-hla.cfg}]')) {
+          throw "Snapshot and restoration must retain the resolved HLA interface."
+        }
         if (($Arguments -join " ") -match 'recover.cfg') {
           return [pscustomobject]@{ ExitCode=0; Text="MXCHIP_RECOVERY_OK`n" }
         }

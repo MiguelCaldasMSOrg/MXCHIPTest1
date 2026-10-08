@@ -1,0 +1,4 @@
+# Pair xPack's native ST-Link driver with SWD for application-only AZ3166 uploads.
+tools.openocd.path.windows=C:\Tools\xpack-openocd-0.12.0-7\openocd
+tools.openocd.cmd.windows=..\bin\openocd.exe
+tools.openocd.upload.pattern="{path}\{cmd}" -s "{path}\scripts" -f "interface\stlink.cfg" -c "transport select swd" -f "target\stm32f4x.cfg" -c "program {{build.path}\{build.project_name}.bin} verify reset 0x0800C000; shutdown"

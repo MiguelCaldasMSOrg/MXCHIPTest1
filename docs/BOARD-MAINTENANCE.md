@@ -112,7 +112,7 @@ must not already exist. This is intentional: previous confidential backups
 are never overwritten. Relative paths, network shares, removable volumes,
 drive roots, and junction/symlink output paths are rejected.
 
-By default, OpenOCD is found through `arduino-cli config dump` in the installed
+By default, OpenOCD is found through `arduino-cli config get directories.data --json` in the installed
 AZ3166 tool package. An alternative distribution can be supplied:
 
 ```powershell
@@ -122,7 +122,11 @@ AZ3166 tool package. An alternative distribution can be supplied:
 That root must contain `bin\openocd.exe`, with HLA support. The tool recognizes
 Tcl scripts under `scripts`, `openocd\scripts` (the xPack layout), or
 `share\openocd\scripts`. The selected script directory must contain
-`interface\stlink-v2-1.cfg` and `target\stm32f4x.cfg`. For the portable xPack
+`target\stm32f4x.cfg` and an HLA interface: `interface\stlink-hla.cfg` is
+preferred, falling back to `interface\stlink-v2-1.cfg` for older distributions.
+The interface/transport/target combination is parsed with an explicit
+`shutdown` before any `init`; unsupported combinations fail even with
+`-WhatIf`, without opening the probe or accessing the target. For the portable xPack
 0.12.0-7 release, pass the extracted `xpack-openocd-0.12.0-7` directory as the
 root; do not pass its `bin` or `openocd` child.
 
@@ -131,6 +135,73 @@ so changes take effect in an already open PowerShell terminal. If an older
 script copy still reports a missing `scripts\interface\stlink-v2-1.cfg` even
 though xPack has it under `openocd\scripts`, refresh the scripts or run
 `Remove-Module BoardMaintenance -Force` before retrying the `-WhatIf` command.
+
+### Arduino uploads with xPack 0.12.0-7
+
+Choosing `-OpenOcdRoot` for the image tool does not configure Arduino uploads.
+Core 2.0.0's upload recipe selects `hla_swd`. In xPack 0.12.0-7,
+`stlink-v2-1.cfg` is now an alias for the **native** ST-Link driver, not HLA.
+Changing only the OpenOCD executable/script paths therefore produces:
+
+```text
+Debug adapter doesn't support 'hla_swd' transport
+```
+
+Use the **native ST-Link interface and `swd` transport together**. This removes
+both the `hla_swd` spelling warning and the HLA-driver deprecation warning.
+The installed V2J28M17 probe firmware is newer than the native driver's V2J24
+minimum; no probe-firmware upgrade was needed. Create
+`platform.local.txt` beside the installed AZ3166 core's `platform.txt` rather
+than changing the vendor interface scripts. For the installation used here,
+that directory is
+`C:\Projects\Arduino\Support\data\packages\AZ3166\hardware\stm32f4\2.0.0`.
+Use your actual extracted xPack path:
+
+```properties
+tools.openocd.path.windows=C:\Tools\xpack-openocd-0.12.0-7\openocd
+tools.openocd.cmd.windows=..\bin\openocd.exe
+tools.openocd.upload.pattern="{path}\{cmd}" -s "{path}\scripts" -f "interface\stlink.cfg" -c "transport select swd" -f "target\stm32f4x.cfg" -c "program {{build.path}\{build.project_name}.bin} verify reset 0x0800C000; shutdown"
+```
+
+Keep the recipe on one line. Arduino CLI reads the override on its next
+invocation; restart the IDE if it is already open. The application upload
+address remains `0x0800C000`; this does not enable RDP/PCROP, change STSAFE
+keys or create a full image. Reapply/review this local override after
+reinstalling the core or changing OpenOCD distributions.
+
+Preserve the filename quoting exactly: Arduino substitutes `{build.path}`
+and `{build.project_name}`, leaving **one** Tcl brace pair around the
+expanded filename. Another outer pair makes modern OpenOCD treat literal
+braces as part of the filename and fail with `couldn't open {filename}`,
+even when the file exists. One pair also protects paths containing spaces.
+
+A matching project copy is kept in
+[tools/platform.local.txt](../tools/platform.local.txt), outside the installed
+board-package directory. See the
+[README restore procedure](../README.md#keeping-local-arduino-overrides-across-core-updates)
+for override precedence, version/path checks and reinstalling this copy after
+a core update.
+
+This configuration-only check does **not** initialize or program the board:
+
+```powershell
+& C:\Tools\xpack-openocd-0.12.0-7\bin\openocd.exe `
+  -s C:\Tools\xpack-openocd-0.12.0-7\openocd\scripts `
+  -f interface\stlink.cfg -c "transport select swd" `
+  -f target\stm32f4x.cfg -c "echo MXCHIP_CONFIG_ONLY_OK; shutdown"
+```
+
+The native upload recipe was hardware-tested on 2026-10-08 with a freshly
+built mode-15 application: programming and readback verification succeeded,
+the board restarted into mode 15, and neither deprecation warning appeared.
+Startup reported no host/envelope keys, an empty host-key sector, RDP0 and
+PCROP off. No key-setup commands or protection changes were performed.
+
+The **separate board-image tool** still uses HLA for its existing
+probe-selection and run/halt-state handling, with the explicit HLA script
+selected on modern xPack. The saved Arduino override does not change that
+tool. Very old probes/OpenOCD builds requiring HLA need the compatible
+legacy recipe; do not mix HLA transport commands with the native driver.
 
 ### Verification and artifacts
 
@@ -348,8 +419,11 @@ that verified CLI.
   operation is run for the tests.
 - Live Windows USB status was read without changing it.
 
-**No target flash backup, target/probe flashing, or MSC switch was performed
-during development.** A live round-trip disable/reenable and restoration of a
+**No target flash backup, probe-firmware flashing, MSC switch or same-board
+full-image restoration was performed during maintenance-tool development.**
+The mode-15 application-only flash described above validates the Arduino
+upload recipe, not those maintenance operations. A live round-trip
+disable/reenable and restoration of a
 secret-bearing full image remain operator-controlled hardware validation.
 Do not interpret unit tests or an updater's supported argument syntax as proof
 that a firmware change has already succeeded on this board.

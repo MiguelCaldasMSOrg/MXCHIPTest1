@@ -31,7 +31,7 @@ if (-not $OutputDirectory) {
 $output = Assert-MxLocalDirectory -Path $OutputDirectory -ForbiddenRoot $projectRoot
 if (Test-Path -LiteralPath $output) { throw "Output directory already exists; nothing will be overwritten." }
 $openocd = Resolve-MxOpenOcd -Root $OpenOcdRoot -UsbPid $probe.UsbPid
-$snapshot = New-MxSnapshotConfiguration -SerialNumber $probe.SerialNumber -UsbPid $probe.UsbPid
+$snapshot = New-MxSnapshotConfiguration -SerialNumber $probe.SerialNumber -UsbPid $probe.UsbPid -InterfaceScript $openocd.InterfaceScript
 Write-Output "Board: $($probe.SerialNumber); application SHA-256: $applicationHash"
 Write-Output "Output: $output"
 Write-Warning "The resulting image may contain plaintext host secrets. It is for THIS board only, not a STSAFE backup. No flash writes will occur, but the CPU pauses during snapshot."
@@ -54,7 +54,7 @@ try {
     $statePath = Join-Path $output "state.txt"
     if (Test-Path -LiteralPath $statePath -PathType Leaf) {
       try {
-        $recovery = New-MxSnapshotRecoveryConfiguration $probe.SerialNumber $probe.UsbPid ([IO.File]::ReadAllText($statePath))
+        $recovery = New-MxSnapshotRecoveryConfiguration $probe.SerialNumber $probe.UsbPid ([IO.File]::ReadAllText($statePath)) -InterfaceScript $openocd.InterfaceScript
         $recoveryPath = Join-Path $output "recover.cfg"
         [IO.File]::WriteAllText($recoveryPath, $recovery, [Text.UTF8Encoding]::new($false))
         $restored = Invoke-MxTool $openocd.Exe @("-s", $openocd.Scripts, "-f", $recoveryPath) $output -TimeoutSeconds 20

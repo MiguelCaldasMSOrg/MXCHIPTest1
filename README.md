@@ -336,6 +336,10 @@ directory is shared. The build also verifies that the original core EEPROM
 implementation is linked, with no local replacement/interception.
 Tool discovery uses the effective Arduino CLI data directory, including its
 platform default when no explicit directory setting exists.
+For xPack 0.12.0-7, also apply the
+[matching native ST-Link/SWD upload recipe](docs/BOARD-MAINTENANCE.md#arduino-uploads-with-xpack-0120-7).
+Changing only the executable path leaves the old `hla_swd` transport paired
+with a now-native ST-Link script and prevents uploads.
 
 For direct compilation, include the **project-local libraries** explicitly:
 
@@ -349,6 +353,48 @@ workspace uses to configure C/C++ IntelliSense for the MXCHIP core and libraries
 It adds entries for the original sketch and every C/C++ source file, rather
 than only their generated build copies. The `.ino` entry injects `Arduino.h`
 and selects C++, matching the sketch's compilation environment.
+
+### Keeping local Arduino overrides across core updates
+
+Arduino loads the board package's `platform.txt` as its base configuration,
+then applies matching properties from `platform.local.txt` in the **same
+installed core directory**. Keep the vendor base file unchanged and put all
+three custom OpenOCD settings in the local override: the installation path,
+executable and native SWD upload recipe. There is no need to split these settings
+between the two files or comment out the vendor defaults.
+
+A copy of the working override is kept at
+[tools/platform.local.txt](tools/platform.local.txt), **outside the versioned
+Arduino board-package directory**. Board Manager updates/reinstalls do not
+replace this project copy. The installed override can be removed or left in
+the old core version's directory, so it may need restoring after an update.
+Arduino does not automatically load the copy under `tools/`.
+
+The saved configuration targets **AZ3166 core 2.0.0 and xPack OpenOCD
+0.12.0-7 on Windows**. On 2026-10-08 it successfully programmed, readback-verified
+and booted mode 15 on the connected ST-Link/V2-1 running V2J28M17, with no
+HLA or transport deprecation warnings. This did not provision keys or change
+protection settings. Review compatibility before applying it to newer
+versions, and adjust its xPack installation path if necessary. From the
+repository root, restore it to the appropriate installed core directory:
+
+```powershell
+arduino-cli core list
+$coreVersion = "2.0.0"  # Set to the installed version after reviewing compatibility.
+$dataDirectory = arduino-cli config get directories.data --json | ConvertFrom-Json
+$coreDirectory = Join-Path $dataDirectory "packages\AZ3166\hardware\stm32f4\$coreVersion"
+if (-not (Test-Path -LiteralPath (Join-Path $coreDirectory "platform.txt"))) {
+  throw "The selected AZ3166 core is not installed at $coreDirectory."
+}
+Copy-Item -LiteralPath .\tools\platform.local.txt `
+  -Destination (Join-Path $coreDirectory "platform.local.txt") -Confirm
+```
+
+If the destination already contains other customizations, merge them rather
+than replacing the file. Keep the project copy in sync when changing your
+overrides. Restart an open Arduino IDE after restoring; Arduino CLI reads
+the override on its next invocation. These are PC-side tooling settings,
+**not a backup of firmware, board data or STSAFE keys**.
 
 ## Arduino IDE
 

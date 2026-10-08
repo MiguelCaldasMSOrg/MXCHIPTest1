@@ -7,9 +7,13 @@ legacy encryption path. It is a level-2 equivalent in its **key source**, not
 an implementation of every operation in the old SDK's dormant level-2 code.
 It does not convert stored data or enable flash protection.
 
-**No board has been flashed, personalized or locked to validate this setup.**
-The implementation is checked with host models and embedded builds. First use
-on hardware still requires qualification on a board whose contents you do not
+**Key personalization and subsequent encrypted EEPROM access remain
+unqualified on hardware.** On 2026-10-08, the mode-15 application was flashed,
+readback-verified and booted to validate the native ST-Link upload recipe;
+its startup reported no host/envelope keys, an empty host-key sector, RDP0
+and PCROP off. No keys were installed and no protection settings were changed.
+The setup implementation is checked with host models and embedded builds.
+First personalization still requires qualification on a board whose contents you do not
 need to retain. The host tool requires `-AcknowledgeUnvalidatedHardware` before
 writing keys.
 
@@ -169,9 +173,9 @@ presence, not proof that a previously provisioned host/chip pair still matches.
 
 ## 4. Detailed how-to
 
-These are instructions for a **future, explicitly authorized hardware
-operation**. None of the uploads or setup commands were executed during
-development of this reduction.
+These instructions require **explicit authorization for hardware writes**.
+Application-only upload and mode-15 startup have been tested as described
+above; the key-installation procedure has not been performed.
 
 ### A. Compile and preview without touching the board
 

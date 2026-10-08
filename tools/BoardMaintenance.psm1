@@ -211,13 +211,18 @@ function Resolve-MxOpenOcd {
   $exe = Join-Path $rootPath "bin\openocd.exe"
   if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) { throw "Missing OpenOCD component: $exe" }
   $scripts = $null
+  $interfaceScript = $null
   foreach ($relative in @("scripts", "openocd\scripts", "share\openocd\scripts")) {
     $candidate = Join-Path $rootPath $relative
-    if ((Test-Path -LiteralPath (Join-Path $candidate "interface\stlink-v2-1.cfg") -PathType Leaf) -and
-        (Test-Path -LiteralPath (Join-Path $candidate "target\stm32f4x.cfg") -PathType Leaf)) {
-      $scripts = $candidate
-      break
+    if (-not (Test-Path -LiteralPath (Join-Path $candidate "target\stm32f4x.cfg") -PathType Leaf)) { continue }
+    foreach ($interface in @("interface\stlink-hla.cfg", "interface\stlink-v2-1.cfg")) {
+      if (Test-Path -LiteralPath (Join-Path $candidate $interface) -PathType Leaf) {
+        $scripts = $candidate
+        $interfaceScript = $interface
+        break
+      }
     }
+    if ($scripts) { break }
   }
   if (-not $scripts) { throw "Missing OpenOCD Tcl scripts; expected scripts, openocd\scripts, or share\openocd\scripts under $rootPath." }
   $version = Invoke-MxTool $exe @("--version") $rootPath
@@ -226,11 +231,20 @@ function Resolve-MxOpenOcd {
   if ($UsbPid -eq "3752" -and [int]$Matches[1] -eq 0 -and [int]$Matches[2] -lt 11) {
     throw "The no-MSC probe (PID 3752) needs newer OpenOCD. Supply -OpenOcdRoot (0.11+ with HLA) or reenable MSC; core 0.10 uses the wrong endpoints."
   }
-  [pscustomobject]@{ Exe = $exe; Scripts = $scripts; Version = $version.Text.Trim() }
+  $configuration = Invoke-MxTool $exe @("-s", $scripts, "-f", $interfaceScript, "-c", "transport select hla_swd", "-f", "target\stm32f4x.cfg", "-c", "echo MXCHIP_HLA_CONFIG_OK", "-c", "shutdown") $rootPath -TimeoutSeconds 15
+  Assert-MxNativeSuccess $configuration "OpenOCD HLA configuration (no target initialization)"
+  if ($configuration.Text -notmatch '(?m)^MXCHIP_HLA_CONFIG_OK\s*$') {
+    throw "OpenOCD did not confirm the HLA interface/transport configuration. No target was initialized."
+  }
+  [pscustomobject]@{ Exe = $exe; Scripts = $scripts; InterfaceScript = $interfaceScript; Version = $version.Text.Trim() }
 }
 
 function New-MxSnapshotConfiguration {
-  param([Parameter(Mandatory)][string]$SerialNumber, [Parameter(Mandatory)][string]$UsbPid)
+  param(
+    [Parameter(Mandatory)][string]$SerialNumber,
+    [Parameter(Mandatory)][string]$UsbPid,
+    [ValidateSet("interface\stlink-hla.cfg", "interface\stlink-v2-1.cfg")][string]$InterfaceScript = "interface\stlink-v2-1.cfg"
+  )
   if ($SerialNumber -notmatch '^[0-9A-Fa-f]{24}$' -or $UsbPid -notin @("374B", "3752")) {
     throw "Invalid ST-Link selection."
   }
@@ -238,7 +252,7 @@ function New-MxSnapshotConfiguration {
 gdb_port disabled
 tcl_port disabled
 telnet_port disabled
-source [find {interface\stlink-v2-1.cfg}]
+source [find {$InterfaceScript}]
 hla_vid_pid 0x0483 0x$UsbPid
 hla_serial $SerialNumber
 transport select hla_swd
@@ -290,11 +304,16 @@ if {$cleanup != 0} {
 }
 
 function New-MxSnapshotRecoveryConfiguration {
-  param([string]$SerialNumber, [string]$UsbPid, [Parameter(Mandatory)][string]$State)
+  param(
+    [string]$SerialNumber,
+    [string]$UsbPid,
+    [Parameter(Mandatory)][string]$State,
+    [ValidateSet("interface\stlink-hla.cfg", "interface\stlink-v2-1.cfg")][string]$InterfaceScript = "interface\stlink-v2-1.cfg"
+  )
   if ($State.Trim() -notmatch '^(running|halted) ([0-9a-fA-F]{8})$') { throw "Unrecognized saved target state; manual recovery required." }
   $running = $Matches[1] -eq "running"
   $watchdog = $Matches[2]
-  $preamble = (New-MxSnapshotConfiguration $SerialNumber $UsbPid).Split('$_TARGETNAME', [StringSplitOptions]::None)[0]
+  $preamble = (New-MxSnapshotConfiguration $SerialNumber $UsbPid -InterfaceScript $InterfaceScript).Split('$_TARGETNAME', [StringSplitOptions]::None)[0]
   $resume = if ($running) { "resume" } else { "" }
   return $preamble + "`n" + '$_TARGETNAME configure -event examine-end {}' + "`ninit`n$resume`nmww 0xE0042008 0x$watchdog`necho MXCHIP_RECOVERY_OK`nshutdown`n"
 }
