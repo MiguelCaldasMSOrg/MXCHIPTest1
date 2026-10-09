@@ -3,9 +3,9 @@
 ## Scope and validation status
 
 Mode **15** installs **your supplied host keys** for the AZ3166 core 2.0.0
-legacy encryption path. It is a level-2 equivalent in its **key source**, not
-an implementation of every operation in the old SDK's dormant level-2 code.
-It does not convert stored data or enable flash protection.
+legacy encryption path: a **level-2-equivalent supplied-key source**. It
+installs the host key pair and the STM32 loaders used by the SDK while
+leaving stored data bytes and flash-protection settings unchanged.
 
 **Key personalization and subsequent encrypted EEPROM access remain
 unqualified on hardware.** On 2026-10-08, the mode-15 application was flashed,
@@ -17,18 +17,9 @@ First personalization still requires qualification on a board whose contents you
 need to retain. The host tool requires `-AcknowledgeUnvalidatedHardware` before
 writing keys.
 
-The project no longer implements:
-
-- Random host-key generation / the level-3 workflow.
-- Application-data export, import, conversion, copying or migration.
-- Provisioning journals, completion records or interruption protection.
-- Recovery archives, backup requirements, resume, rollback, host-key
-  restoration or recovery-image generation.
-- RDP1 arming, cancellation or boot-time protection changes.
-
-The separately requested [board-maintenance tools](BOARD-MAINTENANCE.md)
-remain available. Their same-board STM32 flash image and ST-Link mass-storage
-switch are independent of key setup.
+The host tool exposes `Status` and `ProvisionSupplied`.
+The [board-maintenance tools](BOARD-MAINTENANCE.md) provide independent
+same-board STM32 image creation and ST-Link mass-storage control.
 
 ## 1. What "setup" writes
 
@@ -43,10 +34,12 @@ Here, provisioning means only these operations:
 4. Erase STM32 **sector 2 only** and write/readback-check the **88-byte legacy
    executable key loaders**.
 
-The new setup path does **not** read or write STSAFE application-data zones,
+The setup path does **not** read or write STSAFE application-data zones,
 initialize their contents, alter their access policies, overwrite existing
 host keys, replace the envelope key, or program option bytes. Booting mode 15
 or requesting status does not perform any of these key/flash writes.
+The external QSPI filesystem is separate and is not affected; do not run
+`FORMAT FILESYS` as part of key setup.
 
 ### Two different kinds of key
 
@@ -56,15 +49,13 @@ or requesting status does not perform any of these key/flash writes.
 | Host cipher key | Supplied by you; encrypts protected host/STSAFE payloads. |
 | Local-envelope key | Generated inside this STSAFE, non-exportable; wraps the application data used by the SDK's legacy EEPROM path. |
 
-Generating the missing local-envelope key is **not** random host-key / level-3
-support. It is required for legacy, chip-bound data encryption even when you
-supply both host keys.
+The chip generates a missing local-envelope key internally. This is required
+for chip-bound data encryption even when you supply both host keys.
 
 **Using the same supplied host keys on two boards does not make their existing
 envelopes portable.** Each STSAFE has its own local-envelope key. STM32 flash
 images do not contain that key or the STSAFE's EEPROM contents. A flash image
 from board A plus the same host keys on board B cannot decrypt A's envelopes.
-There is no cross-board data-transfer workflow in this project.
 
 ## 2. Architecture
 
@@ -83,7 +74,7 @@ SuppliedKeySetup
   create missing envelope key -> install supplied host keys
   protected RAM-only proof -> write legacy STM32 key loaders
 
-Ordinary application access (unchanged):
+Ordinary application access:
   SDK EEPROMInterface -> SDK STSAFE HAL -> original legacy envelopes
 ```
 
@@ -104,10 +95,9 @@ Source responsibilities:
   original core EEPROM implementation is linked, without a project
   replacement or interception.
 
-The full pinned STSELib middleware and mode-14 diagnostics remain. In
-particular, its generic RNG APIs and diagnostic RNG test are not a random
-host-key provisioning workflow. No upstream middleware or globally installed
-Arduino core files are changed.
+STSELib supplies the key-operation APIs. Mode 14 uses the same middleware
+for metadata, RNG and public-vector cryptographic diagnostics. The vendored
+middleware runtime and the Arduino core's EEPROM source are unmodified.
 
 ### Original key-loader ABI
 
@@ -118,24 +108,25 @@ have the opposite order:
 | --- | --- |
 | `0x08008000` | 44-byte Thumb cipher-key getter; callable pointer `0x08008001`. |
 | `0x0800802C` | 44-byte Thumb MAC-key getter; callable pointer `0x0800802D`. |
-| `0x08008058` through `0x0800BFFF` | Left erased; no project metadata or journal. |
+| `0x08008058` through `0x0800BFFF` | Left erased. |
 
 The bootloader below sector 2 and the application at `0x0800C000` are not
 written by key setup. Sector 2 must initially be uniformly `FF` or uniformly
 `00` (an empty factory/reference-image representation); other contents are
-rejected. The loader layout is the original SDK layout, not a new key-storage
-or EEPROM format. The legacy envelope slot, zone layout, 480-byte maximum
-plaintext block and 8-byte envelope overhead remain unchanged.
+rejected. The loader layout follows the SDK ABI. Encrypted application
+access uses the SDK's envelope slot and zone layout, with a 480-byte maximum
+plaintext block and 8-byte envelope overhead.
 
 ### Original EEPROM behavior, including its drawbacks
 
-There is **no local EEPROM compatibility layer**. The original core detects
-the key-loader marker and selects its existing encrypted read/write path.
-It does not know about the host tool or Button A authorization.
+Application code uses the **core EEPROM implementation directly**. The core
+detects the key-loader marker and selects its encrypted read/write path.
+The host tool's Button A authorization controls key setup, not ordinary
+application reads or writes.
 
 **Existing plaintext is not converted.** Setup leaves the data-zone bytes
 alone, but once the loaders are installed the core interprets those bytes as
-encrypted envelopes. Old plaintext may therefore become unreadable; it is
+encrypted envelopes. Pre-setup plaintext may therefore become unreadable; it is
 not promised to survive subsequent normal access. The core can write
 replacement zero-filled envelopes after a failed decrypt. Even a legacy
 read is not guaranteed to be nonmutating in that situation.
@@ -146,10 +137,9 @@ under the SDK's later behavior. Save new application values through the
 ordinary SDK interfaces when needed; this workflow does not initialize or
 reencrypt all zones on your behalf.
 
-The built-in console remains unchanged: `enable_secure 1` is still its
-historical operation, and levels 2/3 are still rejected. Do not use that
-separate level-1 operation as a step in supplied-key setup; it uses its own
-keys and conversion behavior. `ProvisionSupplied` does not call it.
+The built-in SDK console supports only `enable_secure 1`. Do not use that
+operation as a step in supplied-key setup; it uses its own keys and
+conversion behavior. Use `ProvisionSupplied` for the workflow in this guide.
 
 ## 3. Preconditions
 
@@ -228,8 +218,6 @@ Status fields:
 | `EnvelopeKeyPresent` | Whether compatible local-envelope slot 0 exists. Either initial value is allowed. |
 | `HostFlashEmpty` | Whether sector 2 is an accepted empty representation. Must be true initially. |
 
-There are no pending-transaction, completion-digest or recovery-state fields.
-
 ### D. Install your supplied keys
 
 ```powershell
@@ -252,6 +240,10 @@ There are no pending-transaction, completion-digest or recovery-state fields.
 Success means the RAM-only protected proof passed, the legacy loader bytes
 were readback-verified, and the final status showed both key objects present
 with host flash no longer empty and RDP/PCROP unchanged.
+The final green **Verified** message is printed only after serial cleanup.
+Failures identify the operation stage; uncertain key writes are never
+automatically retried. Raw protocol traffic is not logged or printed by
+`-Verbose`, since it contains supplied key material.
 
 Button B or `SK2 ABORT` only cancels transient authorization/input. It does
 **not** undo persistent writes, and the synchronous key-write sequence is not
@@ -265,25 +257,25 @@ credentials; mode 8 can save new credentials using the original SDK path.
 Pre-setup plaintext credentials have not been migrated and must not be
 assumed readable. See the [Wi-Fi instructions](../README.md#operating-modes).
 
-Normal application-only updates preserve the host-key sector. The firmware
-does not set RDP or PCROP on the next boot. There is no lock request hidden
-in the application or key sector.
+Normal application-only updates preserve the host-key sector. RDP/PCROP
+settings are unchanged by setup and by subsequent application boots.
 
 ## 5. Failure and security boundaries
 
 If setup fails, the error identifies the failed stage. Stop: the STSAFE might
 already have an envelope key or host keys, or the STM32 loader might be
-partially written. The tool does not journal, roll back, resend an uncertain
-mutation, repair flash, resume an operation or restore anything from a file.
-Do not assume repeating the command is a recovery procedure.
+partially written. Setup is a one-shot sequence: it stops without retrying
+uncertain mutations or undoing persistent writes. An interruption can leave
+unusable state; the tool offers no repair operation. Do not repeat the command
+as a generic recovery procedure.
 
 Status is available to inspect reported state, but is not a recovery tool.
 Do not infer completion solely from presence flags, reset into normal
 encrypted reads after a partial failure, or erase protection/flash as a
 generic fix. There is no project-supported reversal of personalization.
 
-The USB protocol deliberately has only `SK2 STATUS`, `SK2 SET <Uid> <keys>`
-and `SK2 ABORT`. Old `SP1` commands are unsupported. Provisioning errors are
+The USB protocol has `SK2 STATUS`, `SK2 SET <Uid> <keys>` and `SK2 ABORT`.
+Provisioning errors are
 returned as `SK2 ERR <code>`, not success-shaped fallback results.
 
 Use a trusted local machine and physical connection:
@@ -308,9 +300,9 @@ Use a trusted local machine and physical connection:
 The C++ tests cover supplied-key validation, the original loader ABI,
 key-presence/protection preconditions, retaining an existing envelope key,
 explicit partial failures, exact flash-write boundaries, physical
-authorization, bounded serial input and rejection of removed commands.
+authorization, bounded serial input and rejection of unsupported commands.
 The backend fixture provides no application-data or option-byte write APIs.
-PowerShell tests simulate the complete supplied-key workflow, removed-action
+PowerShell tests simulate the complete supplied-key workflow, unsupported-action
 rejection, `-WhatIf`, confirmation, errors, post-setup checks and connection
 cleanup without opening a serial port.
 

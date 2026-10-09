@@ -1,4 +1,5 @@
 #requires -Version 7.2
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact="High")]
 param(
   [string]$Port = "COM8",
   [string]$Ssid,
@@ -6,6 +7,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "BoardToolOutput.ps1")
 
 function ConvertTo-ConsoleArgument {
   param([Parameter(Mandatory)][AllowEmptyString()][string]$Value)
@@ -20,8 +22,8 @@ function Read-Until {
   )
 
   $text = ""
-  $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
-  while ([DateTime]::UtcNow -lt $deadline) {
+  $timer = [Diagnostics.Stopwatch]::StartNew()
+  while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
     $text += $SerialPort.ReadExisting()
     if ($text.Length -gt 8192) { throw "Too much unexpected configuration-console output; response suppressed to avoid exposing credentials." }
     foreach ($value in $Expected) {
@@ -34,6 +36,18 @@ function Read-Until {
   throw "Timed out waiting for the configuration console. Response suppressed to avoid exposing credentials; settings may be partially updated."
 }
 
+function Assert-ConsoleSave {
+  param(
+    [Parameter(Mandatory)][string]$Response,
+    [Parameter(Mandatory)][string]$Acknowledgement,
+    [Parameter(Mandatory)][ValidateSet("SSID","Password")][string]$Field
+  )
+  if (-not $Response.Contains($Acknowledgement) -or $Response -match '(?m)^\s*(?:ERROR:|Invalid Wi-Fi)') {
+    throw "$Field save was not verified. Console output suppressed; settings may be partially updated."
+  }
+}
+
+if (-not $PSCmdlet.ShouldProcess($Port, "Save Wi-Fi SSID and password through the SDK configuration console")) { return }
 if (-not $Ssid) {
   $Ssid = Read-Host "Wi-Fi SSID"
 }
@@ -45,6 +59,9 @@ if ($Ssid.Length -lt 1 -or $Ssid.Length -gt 31 -or $Ssid -match '[^\x20-\x7e]') 
 $securePassword = Read-Host "Wi-Fi password (leave empty for an open network)" -AsSecureString
 $passwordPointer = [IntPtr]::Zero
 $serialPort = $null
+$stage = "Validating credentials"
+$verified = $false
+$primaryError = $null
 try {
   $passwordPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
   $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPointer)
@@ -55,30 +72,34 @@ try {
   Write-Host "Hold Button A, press Reset, and release A when the onboard display shows Configuration."
   Read-Host "Press Enter when configuration mode is ready"
 
+  $stage = "Identifying the configuration console"
   $serialPort = [System.IO.Ports.SerialPort]::new($Port, 115200, 'None', 8, 'One')
   $serialPort.NewLine = "`r`n"
   $serialPort.WriteTimeout = 3000
   $serialPort.Open()
+  $serialPort.DiscardInBuffer()
   $serialPort.WriteLine("help")
   Read-Until -SerialPort $serialPort -Expected @("Configuration console:") | Out-Null
 
+  $stage = "Saving and verifying SSID"
   $serialPort.WriteLine("set_wifissid $(ConvertTo-ConsoleArgument $Ssid)")
   $response = Read-Until -SerialPort $serialPort -Expected @("INFO: Set Wi-Fi SSID successfully.", "ERROR:", "Invalid")
-  if (-not $response.Contains("INFO: Set Wi-Fi SSID successfully.")) {
-    throw "SSID save was not verified. Console output suppressed; settings may be partially updated."
-  }
+  Assert-ConsoleSave $response "INFO: Set Wi-Fi SSID successfully." SSID
 
+  $stage = "Saving and verifying password"
   $serialPort.WriteLine("set_wifipwd $(ConvertTo-ConsoleArgument $password)")
   $response = Read-Until -SerialPort $serialPort -Expected @("INFO: Set Wi-Fi password successfully.", "ERROR:", "Invalid")
-  if (-not $response.Contains("INFO: Set Wi-Fi password successfully.")) {
-    throw "Password save was not verified. Console output suppressed; settings may be partially updated."
-  }
+  Assert-ConsoleSave $response "INFO: Set Wi-Fi password successfully." Password
 
-  Write-Host "Wi-Fi credentials saved and verified in STSAFE EEPROM."
   if (-not $NoReboot) {
+    $stage = "Requesting reboot"
     $serialPort.WriteLine("exit")
     Write-Host "Board reboot requested."
   }
+  $verified = $true
+} catch {
+  $primaryError = $_
+  throw "Wi-Fi configuration failed at stage '$stage': $($_.Exception.Message) No automatic credential-write retry was attempted."
 } finally {
   if ($passwordPointer -ne [IntPtr]::Zero) {
     [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPointer)
@@ -88,11 +109,15 @@ try {
   $securePassword.Dispose()
   if ($serialPort) {
     try {
-      if ($serialPort.IsOpen) {
-        $serialPort.Close()
+      try {
+        if ($serialPort.IsOpen) { $serialPort.Close() }
+      } catch {
+        if ($primaryError) { Write-Warning "Serial cleanup also failed; the connection could not be closed normally." }
+        else { throw "Wi-Fi serial cleanup failed. The settings may already have been saved, but the connection could not be closed cleanly." }
       }
     } finally {
       $serialPort.Dispose()
     }
   }
+  if ($verified) { Write-BoardVerified "Wi-Fi credentials saved and checked by the SDK console. Reboot completion is not asserted." }
 }

@@ -39,9 +39,8 @@ See [build/upload instructions](#arduino-cli), [operating modes](#operating-mode
   layers, pinned to v1.1.11, plus an AZ3166 native-I2C/mbedTLS platform port.
 - [src/HostKeyBlock.h](src/HostKeyBlock.h),
   [src/SuppliedKeySetup.cpp](src/SuppliedKeySetup.cpp): supplied STSAFE host
-  keys and original-format STM32 key loaders, without application-data
-  conversion, journals, recovery, random host keys or protection automation.
-  The original core EEPROM implementation is not replaced or intercepted.
+  keys and SDK-format STM32 key loaders. Ordinary application access uses
+  the core EEPROM implementation directly.
 - [docs/LEGACY-PROVISIONING.md](docs/LEGACY-PROVISIONING.md): architecture,
   detailed supplied-key setup procedures and legacy limitations.
   Hardware personalization remains unvalidated.
@@ -118,12 +117,11 @@ Set `MXCHIP_TEST_MODE` in [src/AppConfig.h](src/AppConfig.h):
 | `12` | Network services | Saved Wi-Fi, DNS, TCP, HTTP, NTP and certificate-validated HTTPS; no Azure account. |
 | `13` | IrDA transmitter | Explicitly requested 38400-baud SIR test bursts on the onboard emitter. |
 | `14` | Security chip | STSELib metadata, binary echo, hardware RNG and public-vector ECDSA verification; no personalization. |
-| `15` | Supplied STSAFE host keys | Explicit host-tool/Button A setup only; no data conversion, recovery, random host keys or RDP changes. |
+| `15` | Supplied STSAFE host keys | Install operator-supplied MAC/cipher keys and SDK-compatible host loaders after host-tool and Button A confirmation. |
 
 The active paths are derived from this one setting; conflicting or invalid
-settings fail at compile time. All sixteen implementations and the audio samples
-remain in the project. Existing `MXCHIP_ENABLE_AUDIO_TESTS=0/1` compiler overrides still select
-the old ASK/audio modes when no new mode override is supplied.
+settings fail at compile time. `MXCHIP_ENABLE_AUDIO_TESTS=0/1` selects ASK/audio
+mode when `MXCHIP_TEST_MODE` is not defined.
 The release workflow validates all sixteen configurations and builds its default
 firmware from the same `MXCHIP_TEST_MODE` setting, without a separate mode override.
 
@@ -159,22 +157,25 @@ open network in mode `8` and an empty password in the console helper.
 The SSID and password are separate SDK writes: a failure can leave partially
 updated settings. Errors do not echo console responses or claim atomicity;
 re-enter both values after a reported save failure.
+The Wi-Fi console helper supports confirmation and `-WhatIf`, and reports
+the failed stage without retrying an uncertain write. Credential and key
+tools keep raw serial traffic out of logs, including with `-Verbose`.
+Their green final **Verified** message is shown after serial cleanup.
 
 Legacy host-key provisioning is a different operation from saving Wi-Fi
 settings. Mode `15` plus [provision-stsafe.ps1](tools/provision-stsafe.ps1)
 installs **only your supplied MAC/cipher keys** and legacy STM32 key loaders,
 with typed confirmation and physical Button A authorization. A missing
-chip-internal local-envelope key is generated; this is distinct from random
-host-key generation. The encryption remains bound to that STSAFE, even if
+chip-internal local-envelope key is generated. Encryption is bound to that STSAFE, even if
 another board uses the same host keys.
 
-No application data is read, converted or initialized by the new setup code.
+Setup writes key material, not the STSAFE application-data zones or QSPI
+filesystem.
 **Existing plaintext is not preserved as usable encrypted data.** Once the
 loaders activate the original encrypted path, legacy reads can fail and can
-overwrite invalid envelopes with zero-filled replacements. There is no
-journal, backup, resume/restore or RDP automation. The original core EEPROM
-and configuration console remain unchanged: `enable_secure 1` remains its
-historical operation, and its level-2/3 commands remain unsupported.
+overwrite invalid envelopes with zero-filled replacements. STM32 RDP/PCROP
+settings are unchanged. Use `ProvisionSupplied` for supplied keys; the
+built-in SDK console supports only `enable_secure 1`, a different operation.
 Read the [full provisioning guide](docs/LEGACY-PROVISIONING.md) first.
 
 Grove OLED mode uses the shared I2C connector at 3.3 V and requires no additional
@@ -207,8 +208,8 @@ connect the E5 modules, and power back on.
 
 **For microphone mode `10`, disconnect Grove peripherals before powering on.**
 The audio codec shares expansion pins, including P14 (`PB_14`, I2S input),
-P16 (`PC_6`, master clock), and the P1/P2 codec-control bus. No new diagnostic
-mode initializes the ASK/LoRa or Grove display drivers. The normal onboard
+P16 (`PC_6`, master clock), and the P1/P2 codec-control bus. Onboard diagnostic
+modes do not initialize the ASK/LoRa or Grove display drivers. The normal onboard
 OLED initialization and orientation are retained.
 
 ### Grove High Precision RTC v1.0 power
@@ -302,6 +303,46 @@ The bundled WDF and WinUSB co-installers are legacy Windows 7-era setup helpers,
 not updates for the frameworks built into current Windows versions. Do not run
 the full-package installer merely to upgrade already-working interfaces.
 
+## ST-Link firmware updater
+
+An unchanged [STSW-LINK007 3.17.11 ZIP](drivers/stsw-link007.zip) is stored
+alongside the USB driver as an offline vendor package. Its official source is
+[STMicroelectronics](https://www.st.com/en/development-tools/stsw-link007.html).
+It is **4,973,107 bytes**, with SHA-256:
+
+```text
+51b76fcbf6b417d03c7cbfc9f029a2d1f463bd0200ee8f3d80764d45d735ee1c
+```
+
+The archive retains all ST and third-party notices. The accompanying
+[ST software license](drivers/STSW-LINK007-LICENSE.txt) applies to the ST
+components; **the project's Unlicense does not apply to this package**.
+ST's terms permit redistribution with the notices retained and restrict use
+to ST hardware. The JAR's pinned ST signature, SHA-384 manifest/member
+digests, and the Windows x64 driver's Authenticode signature are verified
+before the updater is used.
+
+The archive also includes LGPL-2.1 libusb libraries for macOS. Their matching,
+unchanged source releases are provided alongside it, with their original
+`COPYING` files and copyright notices inside:
+
+| Library | Corresponding source | Upstream release | SHA-256 |
+| --- | --- | --- | --- |
+| libusb 1.0.23 (nano 11397) | [libusb-1.0.23.tar.bz2](drivers/libusb-1.0.23.tar.bz2) | [v1.0.23](https://github.com/libusb/libusb/releases/tag/v1.0.23) | `db11c06e958a82dac52cf3c65cb4dd2c3f339c8a988665110e0d24d19312ad8d` |
+| libusb 1.0.27 (nano 11882) | [libusb-1.0.27.tar.bz2](drivers/libusb-1.0.27.tar.bz2) | [v1.0.27](https://github.com/libusb/libusb/releases/tag/v1.0.27) | `ffaa41d741a8a3bee244ac8e54a72ea05bf2879663c098c82fc5757853441575` |
+
+The Windows setup tool installs only the JAR and its x64 Windows driver:
+
+```powershell
+.\tools\stlink-mass-storage.ps1 -Action Setup `
+  -VendorZip .\drivers\stsw-link007.zip -AcceptVendorLicense
+```
+
+Review the license before passing `-AcceptVendorLicense`. Setup validates
+and prepares local files; it does not run the updater or modify the board.
+See [board-side mass-storage control](docs/BOARD-MAINTENANCE.md#2-disablere-enable-mass-storage-on-the-board)
+before requesting an actual firmware switch.
+
 ## Arduino CLI
 
 The local upload defaults are stored in [sketch.yaml](sketch.yaml). The build script mirrors
@@ -338,7 +379,7 @@ Tool discovery uses the effective Arduino CLI data directory, including its
 platform default when no explicit directory setting exists.
 For xPack 0.12.0-7, also apply the
 [matching native ST-Link/SWD upload recipe](docs/BOARD-MAINTENANCE.md#arduino-uploads-with-xpack-0120-7).
-Changing only the executable path leaves the old `hla_swd` transport paired
+Changing only the executable path leaves the core's `hla_swd` transport paired
 with a now-native ST-Link script and prevents uploads.
 
 For direct compilation, include the **project-local libraries** explicitly:
@@ -550,8 +591,8 @@ unmodified release. The ST development-board example applications and their
 platform-specific CMOX binaries are not needed; this board uses its existing
 mbedTLS instead.
 
-Mode `14` first retains the legacy `Init_HAL`/`HAL_Get_Data_Zone` read check,
-then uses the new middleware to:
+Mode `14` first performs an `Init_HAL`/`HAL_Get_Data_Zone` read check,
+then uses STSELib to:
 
 - Verify the STSAFE-A100 silicon identity.
 - Query lifecycle, host-key presence, private-key slot count and all storage
@@ -609,15 +650,13 @@ provisioning. Full mutable service APIs are present in the source; the diagnosti
 does not call them. Never run `enable_secure` or a middleware provisioning API
 as a generic test or retry.
 
-The legacy encrypted representation and the original core EEPROM implementation
-are retained. Mode `15` installs only supplied host keys and their original
-STM32 loaders, with explicit operator authorization. There is no journal,
-data conversion, recovery or boot-time locking. Existing plaintext is not
-converted into usable envelopes, and the original EEPROM failure behavior is
-unchanged; read the [supplied-key guide](docs/LEGACY-PROVISIONING.md) before use.
-Do not interchange the old and new libraries in the middle of an authenticated
-session. The host-key flash region still needs preserving if personalization
-is enabled later.
+Mode `15` installs supplied host keys and SDK-compatible STM32 loaders, with
+explicit operator authorization. Application reads/writes use the core's
+legacy encrypted representation and failure behavior. Existing plaintext is
+not converted into usable envelopes; read the
+[supplied-key guide](docs/LEGACY-PROVISIONING.md) before use.
+Do not interchange the SDK HAL and STSELib in the middle of an authenticated
+session. Preserve the host-key flash region on a personalized board.
 
 #### Licensing
 
@@ -695,7 +734,7 @@ the RTC. Successful writes are read back before the clock restarts, and failures
 are reported on serial. The RTC's 12/24-hour setting, RAM, output configuration,
 and calibration (PCF85063TP only) are preserved. Displayed weekdays use Sunday
 `W0` through Saturday `W6`; DS1307 registers use Seeed's Monday=1 through
-Sunday=7 convention. The existing single-character commands still work without Enter.
+Sunday=7 convention. Single-character commands work without Enter.
 
 To use the computer's current local time from PowerShell, close any other
 serial monitor, select the connected board's port, and run:
@@ -1001,13 +1040,13 @@ the complete upstream hash manifest independently.
 Supplied-key tests exercise the real setup backend with simulated STM32/STSAFE,
 the exact legacy key-loader ABI, key/protection preconditions, explicit
 partial failures, physical authorization, bounded input, the host workflow
-and rejection of removed actions. No application-data or option-byte write
+and rejection of unsupported actions. No application-data or option-byte write
 APIs are provided by the backend fixture. Embedded builds verify original-core
 EEPROM linkage. These checks are not a substitute for qualification on a spare
 board; no real provisioning/protection change was performed during development.
 
 Firmware validation tests check vectors, the exact application flash-size
-boundary, unchanged bytes and the absence of generic full-image generation.
+boundary and unchanged application bytes.
 Maintenance tests use simulated devices; they do not read or flash a board.
 Windows-only ACL and updater-orchestration checks run locally; portable
 maintenance checks also run in GitHub Actions.
@@ -1019,17 +1058,14 @@ the source-selected default from [src/AppConfig.h](src/AppConfig.h).
 
 ## Firmware images
 
-Local builds and new GitHub releases provide **application-only firmware**:
+Local builds and GitHub releases provide **application-only firmware**:
 
 | Image | Contents | Upload method |
 | --- | --- | --- |
 | `MXCHIPTest1.ino.bin` | Application only, linked at `0x0800C000`. | Normal Arduino CLI/OpenOCD upload. |
 
 The [validation script](tools/validate-firmware.ps1) checks the stack/reset
-vectors and flash capacity without altering the application. The build no
-longer creates a bootloader-inclusive `.full.bin` and removes the obsolete
-generated `build/MXCHIPTest1.full.bin` if it exists. New releases do not publish
-that asset; earlier releases are unchanged.
+vectors and flash capacity without altering the application.
 
 Use Arduino CLI/OpenOCD to program the application at `0x0800C000`. **Do not
 drag this application-only binary onto the `AZ3166` drive.** This upload path
@@ -1065,26 +1101,67 @@ to obtain a backup: reverting Level 1 to Level 0 erases STM32 flash.
 The virtual disk is provided by the ST-Link interface, not by the Arduino
 application. [stlink-mass-storage.ps1](tools/stlink-mass-storage.ps1) prepares
 ST's authenticated vendor updater and performs a **board-side** reversible
-MSC disable/reenable operation. It never changes Windows device or mount
-settings. Read the [how-to](docs/BOARD-MAINTENANCE.md) before using it:
-this programs the ST-Link coprocessor and can change its USB ID. The bundled
-OpenOCD 0.10 cannot correctly handle the `3752` no-MSC personality; reenable
-MSC or configure newer compatible tooling for subsequent SWD operations.
+MSC disable/reenable operation. It can restart the selected Windows USB
+device to complete a firmware transition, but does not hide devices or change
+driver bindings or automount rules. Read the [how-to](docs/BOARD-MAINTENANCE.md) before using it:
+this programs the ST-Link coprocessor and can change its USB ID. The switch
+uses ST's vendor updater, **not OpenOCD**, and leaves Arduino's upload
+configuration unchanged. The saved xPack OpenOCD 0.12.0-7 native ST-Link/SWD
+configuration supports the `3752` no-MSC personality.
 
 ```powershell
 .\tools\stlink-mass-storage.ps1 -Action Status
-.\tools\stlink-mass-storage.ps1 -Action Setup -VendorZip C:\Downloads\en.stsw-link007.zip -AcceptVendorLicense
+.\tools\stlink-mass-storage.ps1 -Action Setup -VendorZip .\drivers\stsw-link007.zip -AcceptVendorLicense
 .\tools\stlink-mass-storage.ps1 -Action Disabled -WhatIf
 .\tools\stlink-mass-storage.ps1 -Action Disabled
 .\tools\stlink-mass-storage.ps1 -Action Enabled
 ```
 
+**Run `Setup` once before the first switch.** STSW-LINK007 is separate from
+the USB driver, Arduino core and OpenOCD; use the [bundled archive](drivers/stsw-link007.zip)
+as shown above. A missing `STLinkUpgrade.jar` means setup has not completed at the
+selected location, not that the board needs repair. The default installation
+is `%LOCALAPPDATA%\MXCHIPTest1\STLinkUpgrade`; use the same `-ToolDirectory`
+for setup and switching if you choose another location.
+
+Run an actual `Enabled`/`Disabled` change from normal **64-bit PowerShell
+7.2+**. Confirm the operation, then approve the Windows UAC prompt if the
+shell is not elevated. The script handles the selected device's loader
+transitions, required Windows USB restarts and final verification; no
+unplugging or separate recovery commands are part of the normal workflow.
+An already-elevated shell needs only the operation confirmation.
+`Status`, `Setup`, `-WhatIf` and an already-correct state do not request UAC.
+Status includes the current serial-port name, such as COM14.
+
+Normal output shows progress and the final verified result. Intermediate
+errors that are successfully recovered are kept in a private per-operation
+log, not reported as console warnings; the initial firmware-write warning
+and confirmation remain. Add `-Verbose` to also display raw diagnostics.
+Each confirmed switch prints its retained log path **before progress** under
+`%LOCALAPPDATA%\MXCHIPTest1\Logs\STLink`. Terminal failures include the
+failed stage, last observed USB state and log path. See
+[output and diagnostics](docs/BOARD-MAINTENANCE.md#output-and-diagnostic-logs).
+The final **Verified** message is green and is the last success message.
+
 ST's STLinkUpgrade tool also documents a **Change type / without mass storage**
 firmware option for supported ST-Link interfaces. The local script uses the
 reversible `mscOffOpt`/`mscOnOpt` variants, never `mscAlwaysOff`.
-Changing firmware on this exact board has not been attempted during
-implementation. Do not treat either Windows hiding
+A hardware **Disabled -> Enabled -> Disabled** round trip has been verified:
+PID `3752`/COM14 without MSC, PID `374B`/COM8 with MSC, then back to
+PID `3752`/COM14. Debug/VCP bindings stayed healthy, and a final native-SWD
+target examination passed without resetting or programming the application.
+The normal script completed this test with **UAC approvals as the only
+operator interaction after authorization**. It automatically completed the
+vendor's loader transitions using scoped Windows device restarts. No
+physical reconnect or manually entered recovery command was needed.
+Port numbers depend on the PC.
+Do not treat either Windows hiding
 or mass-storage disabling as a substitute for secure key-backup/update design.
+A recognized failure before programming permits one controlled continuation
+from the same probe's verified loader. After programming succeeds, only USB
+re-enumeration is attempted, never another flash. Unknown outcomes or a
+changed probe/USB location stop with an explicit error; see the
+[transition limits](docs/BOARD-MAINTENANCE.md#usb-loader-transition-errors).
 
 Suppressing AutoPlay only prevents the Explorer prompt; it does **not**
 prevent mounting or writing. Removing a drive letter is weaker than disabling
@@ -1101,7 +1178,7 @@ References: [ST-Link firmware release notes (RN0093)](https://www.st.com/resourc
 The repository includes the MXCHIP AZ3166 default firmware image at
 `firmware/devkit-firmware-2.0.0.bin`. It is kept separately from generated build
 outputs for deliberate bootloader/factory recovery. It is not used by normal
-builds or included in new release assets.
+builds or included in release assets.
 
 SHA-256:
 
@@ -1136,8 +1213,7 @@ Select **Build without creating a tag or release** to validate the release build
 without publishing it. The workflow compiles the sketch with MXCHIP board core
 2.0.0, creates the tag for non-dry manual runs, and publishes the generated
 application-only binary, ELF, map and STSELib license in a GitHub release.
-Only those four named assets are published; full images, board-specific backups,
-build caches and compilation databases are not release assets.
-Every new release also includes an application-only upload warning in its
+Only those four named assets are published.
+Every release includes an application-only upload warning in its
 release notes. Mode 15 is not the default release firmware and its
 personalization path still requires hardware qualification.

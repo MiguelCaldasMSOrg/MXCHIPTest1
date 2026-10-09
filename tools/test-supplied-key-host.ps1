@@ -192,8 +192,10 @@ try {
   Assert ($fakeSerial.SetCount -eq 1) "unexpected post-setup state is not repaired"
 
   New-WorkflowFixture
-  $text = (& $entry -Port FIXTURE -Action ProvisionSupplied -AcknowledgeUnvalidatedHardware -Confirm:$false 3>&1 | Out-String)
-  Assert ($text.Contains("Supplied keys and legacy STM32 loaders installed") -and -not $text.Contains($hostInput.KeyText)) "success is explicit without echoing keys"
+  $successRecords = @(& $entry -Port FIXTURE -Action ProvisionSupplied -AcknowledgeUnvalidatedHardware -Confirm:$false *>&1)
+  $text = $successRecords | Out-String
+  Assert ($text.Contains("Verified: supplied keys and legacy STM32 loaders installed") -and -not $text.Contains($hostInput.KeyText)) "success is explicit without echoing keys"
+  Assert ($successRecords[-1].ToString().StartsWith("Verified:")) "success is final, after serial cleanup"
   Assert ($fakeSerial.SetCount -eq 1 -and $fakeSerial.Disposed -and $hostInput.Prompts -eq 3) "one supplied-key operation after both confirmations"
   Assert (($fakeSerial.Commands -join ',') -ceq "SK2 STATUS,SK2 SET $($fakeSerial.Uid) $($hostInput.KeyText),SK2 STATUS,SK2 ABORT") "exact supplied-only command sequence with MAC first"
 
@@ -201,6 +203,13 @@ try {
   $fakeSerial.FailClose = $true
   Reject { & $entry -Port FIXTURE -Action Status -Confirm:$false } "serial close error is explicit" 'Fixture close failure'
   Assert ($fakeSerial.Disposed) "serial is disposed even after a close error"
+  New-WorkflowFixture
+  $fakeSerial.FailClose = $true
+  $failure = $null
+  $records = @()
+  try { $records = @(& $entry -Port FIXTURE -Action ProvisionSupplied -AcknowledgeUnvalidatedHardware -Confirm:$false *>&1) } catch { $failure = $_ }
+  Assert ($null -ne $failure -and $failure.Exception.Message.Contains("Serial cleanup failed") -and
+          -not (($records | Out-String).Contains("Verified:"))) "a cleanup failure cannot leave a success-shaped final result"
 } finally {
   & $module { param($Original) Set-Item Function:script:Connect-SuppliedKeyTarget -Value $Original } $originalConnect
   Remove-Module $module -Force

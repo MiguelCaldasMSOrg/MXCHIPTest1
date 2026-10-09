@@ -1,3 +1,6 @@
 # Preserve the downloaded documentation and asset bytes without line-ending conversion.
 docs/Azure-IoT-DevKit/** -text linguist-vendored
 docs/MXCHIP/** -text linguist-vendored
+# Preserve vendor packages and their corresponding source archives byte-for-byte.
+drivers/*.zip -text linguist-vendored
+drivers/*.tar.bz2 -text linguist-vendored

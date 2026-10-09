@@ -7,8 +7,14 @@ This is a BOARD-SIDE firmware operation, not Windows device hiding.
 Status and WhatIf never invoke the firmware updater. Setup verifies a supplied
 official STSW-LINK007 archive (or attempts an official download), then copies
 only ST's signed JAR and x64 driver to a private local directory.
-Enabled/Disabled require confirmation and use only the reversible mscOnOpt/
-mscOffOpt settings. The vendor process is never killed automatically.
+Actual Enabled/Disabled changes request confirmation and UAC elevation when
+needed. Bounded, exact-device Windows restarts complete loader transitions.
+Only a recognized failure before programming permits one loader continuation;
+successful programming is never repeated to exit loader mode. Status, Setup,
+WhatIf and an already-correct state do not require elevation. The vendor
+process is never killed automatically.
+Normal output shows progress and the verified result. Raw diagnostics are
+retained in a private operation log; use -Verbose to also display them.
 #>
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = "High")]
 param(
@@ -23,13 +29,14 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "BoardToolOutput.ps1")
 Import-Module (Join-Path $PSScriptRoot "BoardMaintenance.psm1") -DisableNameChecking -Force
 if (-not $IsWindows -or -not [Environment]::Is64BitProcess) { throw "Run this script in 64-bit PowerShell 7.2+ on Windows." }
 if (-not $ToolDirectory) { $ToolDirectory = Join-Path $env:LOCALAPPDATA "MXCHIPTest1\STLinkUpgrade" }
 $ToolDirectory = [IO.Path]::GetFullPath($ToolDirectory)
 
 if ($Action -eq "Setup") {
-  if (-not $AcceptVendorLicense) { throw "Obtain/accept STSW-LINK007's license from ST, then specify -AcceptVendorLicense. Vendor binaries are not distributed by this repository." }
+  if (-not $AcceptVendorLicense) { throw "Review STSW-LINK007's license in drivers\STSW-LINK007-LICENSE.txt or on ST's download page, then specify -AcceptVendorLicense." }
   if ([bool]$VendorZip -eq [bool]$DownloadVendorTool) { throw "Specify exactly one of -VendorZip or -DownloadVendorTool." }
   $null = Assert-MxLocalDirectory -Path $ToolDirectory -ForbiddenRoot (Split-Path -Parent $PSScriptRoot)
   if (Test-Path -LiteralPath $ToolDirectory) { throw "ToolDirectory already exists. Use a new directory to prepare a different vendor version." }
@@ -59,7 +66,6 @@ if ($Action -eq "Setup") {
     }
     $package = Test-MxUpdaterPackage $ToolDirectory
     $package | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $ToolDirectory "verified-package.json") -Encoding utf8
-    Write-Output "Authenticated ST updater prepared at $ToolDirectory. No probe was opened or modified."
     Write-Output "JAR SHA-256: $($package.JarSha256)"
   } catch {
     foreach ($relative in @("STLinkUpgrade.jar", "native\win_x64\STLinkUSBDriver.dll", "verified-package.json")) {
@@ -71,64 +77,67 @@ if ($Action -eq "Setup") {
   } finally {
     if ($DownloadVendorTool -and (Test-Path -LiteralPath $downloadPath -PathType Leaf)) { Remove-Item -LiteralPath $downloadPath -Force }
   }
+  Write-BoardVerified "authenticated ST updater prepared at $ToolDirectory. No board was modified."
   return
 }
 if ($VendorZip -or $DownloadVendorTool -or $AcceptVendorLicense) { throw "Vendor package options apply only to -Action Setup." }
 $probe = Get-MxStLink -SerialNumber $SerialNumber
-$probe | Format-List
-if ($Action -eq "Status") { return }
-if (Test-MxMscState $probe $Action) {
-  Write-Output "Mass storage is already $($Action.ToLowerInvariant()); no firmware write needed."
+if ($Action -eq "Status") {
+  $probe | Format-List
   return
 }
+if (Test-MxMscState $probe $Action) {
+  Write-BoardVerified "mass storage is already $($Action.ToLowerInvariant()); no firmware write needed."
+  return
+}
+if (-not $WhatIfPreference) {
+  foreach ($relative in @("STLinkUpgrade.jar", "native\win_x64\STLinkUSBDriver.dll")) {
+    $component = Join-Path $ToolDirectory $relative
+    if (-not (Test-Path -LiteralPath $component -PathType Leaf)) {
+      throw "ST-Link updater is not prepared: missing '$component'. From the repository root, run .\tools\stlink-mass-storage.ps1 -Action Setup -VendorZip .\drivers\stsw-link007.zip -AcceptVendorLicense after accepting ST's terms, or use -ToolDirectory to select an existing verified AllPlatforms installation. No updater or device write was started."
+    }
+  }
+  if (-not $JavaPath) {
+    $java = Get-Command java -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $java) { throw "64-bit Java is required. Install it or supply -JavaPath to its java.exe; no updater was started." }
+    $JavaPath = $java.Source
+  }
+  if (-not (Test-Path -LiteralPath $JavaPath -PathType Leaf)) { throw "Java executable not found: '$JavaPath'. Supply -JavaPath to an installed 64-bit java.exe; no updater was started." }
+  $JavaPath = (Resolve-Path -LiteralPath $JavaPath).Path
+}
 $arguments = @(New-MxMscArguments -SerialNumber $probe.SerialNumber -State $Action)
-Write-Output "Vendor operation: STLinkUpgrade.jar $($arguments -join ' ')"
-Write-Warning "This reprograms the ST-Link coprocessor with the selected vendor bundle and may reset/disconnect USB. It does not intentionally program the target application or STSAFE. Keep USB power connected and close debugger/serial tools."
+Write-Verbose "Vendor operation: STLinkUpgrade.jar $($arguments -join ' ')"
+Write-Warning "This reprograms the ST-Link coprocessor and may restart its Windows USB device to complete loader entry/exit. USB and the application may reset. It does not program target application flash or STSAFE. Keep USB power connected and close debugger/serial tools."
 if ($Action -eq "Disabled") {
-  Write-Warning "No-MSC firmware may enumerate as PID 3752. The core's OpenOCD 0.10 cannot use that personality; reenable MSC with this tool or use a newer compatible OpenOCD."
+  $notice = "No-MSC mode uses USB PID 3752 and may change the COM port. This operation uses ST's vendor updater; it does not invoke OpenOCD or change your Arduino upload configuration."
+  if ($WhatIfPreference) { Write-Output $notice } else { Write-Verbose $notice }
 }
 if (-not $PSCmdlet.ShouldProcess($probe.SerialNumber, "Set board-side mass storage to $Action by programming ST-Link firmware")) { return }
-$package = Test-MxUpdaterPackage $ToolDirectory
-if (-not $JavaPath) { $JavaPath = (Get-Command java -CommandType Application -ErrorAction Stop).Source }
-$JavaPath = (Resolve-Path -LiteralPath $JavaPath).Path
-$javaArguments = @("-Djava.awt.headless=true", "-jar", $package.Jar)
-$preflight = @(New-MxMscArguments -SerialNumber $probe.SerialNumber -State $Action -Preflight)
-$result = Invoke-MxTool $JavaPath ($javaArguments + $preflight) $ToolDirectory -TimeoutSeconds 45
-Assert-MxNativeSuccess $result "ST updater parameter preflight"
-if ($result.Text -match '(?i)(parameter error|command syntax error|incompatible|no st-link|failure)') {
-  throw "ST updater rejected the selected probe or options.`n$($result.Text)"
-}
-Write-Output $result.Text.Trim()
-# Recheck identity and package immediately before the only firmware-writing invocation.
-$null = Get-MxStLink -SerialNumber $probe.SerialNumber
-$confirmedPackage = Test-MxUpdaterPackage $ToolDirectory
-if ($confirmedPackage.JarSha256 -ne $package.JarSha256 -or $confirmedPackage.DriverSha256 -ne $package.DriverSha256) {
-  throw "Vendor package changed during preflight."
-}
-$result = Invoke-MxTool $JavaPath ($javaArguments + $arguments) $ToolDirectory -NeverKill
-Assert-MxNativeSuccess $result "ST-Link firmware switch"
-Write-Output $result.Text.Trim()
-$deadline = [DateTime]::UtcNow.AddSeconds(45)
-$stable = 0
-$lastProblem = "USB did not re-enumerate"
-while ([DateTime]::UtcNow -lt $deadline) {
-  Start-Sleep -Milliseconds 750
-  try {
-    $after = Get-MxStLink -SerialNumber $probe.SerialNumber
-    if (Test-MxMscState $after $Action) {
-      $stable++
-      if ($stable -ge 2) {
-        Write-Output "Verified: board-side mass storage $($Action.ToLowerInvariant()); the same ST-Link serial, debug interface, and serial port re-enumerated."
-        Write-Output "USB PID now $($after.UsbPid). No Windows devices, drive-letter rules, or automount settings were changed."
-        return
-      }
-    } else {
-      $stable = 0
-      $lastProblem = "The selected device's interface set or driver status does not match $Action."
-    }
-  } catch {
-    $stable = 0
-    $lastProblem = $_.Exception.Message
+$operation = New-MxMscOperation -State $Action -SerialNumber $probe.SerialNumber -ShowDiagnostics:($VerbosePreference -eq "Continue")
+$operation.LastState = "USB PID $($probe.UsbPid), Windows status $($probe.Status)"
+Write-Output "Diagnostics: $($operation.LogPath)"
+try {
+  $progress = if ($Action -eq "Enabled") { "Enabling mass storage..." } else { "Disabling mass storage..." }
+  Write-MxMscProgress $operation $progress
+  Write-MxMscDiagnostic $operation ("Selected device: " + ($probe | ConvertTo-Json -Compress))
+  $operation.Stage = "Validating updater"
+  $package = Test-MxUpdaterPackage $ToolDirectory
+  Write-MxMscDiagnostic $operation ("Authenticated package: " + ($package | ConvertTo-Json -Compress))
+  if (Test-MxAdministrator) {
+    $after = Invoke-MxMscWorker -State $Action -SerialNumber $probe.SerialNumber -ToolDirectory $ToolDirectory -JavaPath $JavaPath -Operation $operation
+  } else {
+    $after = Invoke-MxElevatedMsc -State $Action -SerialNumber $probe.SerialNumber -ToolDirectory $ToolDirectory -JavaPath $JavaPath -Operation $operation
   }
+  $operation.Stage = "Complete"
+  $operation.LastState = "USB PID $($after.UsbPid), Windows status $($after.Status)"
+  Write-MxMscDiagnostic $operation ("Verified result: " + ($after | ConvertTo-Json -Compress))
+  Write-BoardVerified "mass storage $($Action.ToLowerInvariant()). Serial: $($after.SerialPortNames -join ', ')."
+} catch {
+  $reason = $_.Exception.Message
+  try {
+    Write-MxMscDiagnostic $operation ("TERMINAL ERROR: " + $_.Exception.ToString())
+  } catch {
+    $reason += " Diagnostic logging also failed: $($_.Exception.Message)"
+  }
+  throw "Could not set mass storage to $($Action.ToLowerInvariant()).`nStage: $($operation.Stage)`nLast observed state: $($operation.LastState)`nReason: $reason`nDiagnostics: $($operation.LogPath)"
 }
-throw "The updater returned, but the requested USB state was NOT verified: $lastProblem. Inspect STLinkUpgrade and reconnect only after it has finished. Do not repeat firmware writes blindly."

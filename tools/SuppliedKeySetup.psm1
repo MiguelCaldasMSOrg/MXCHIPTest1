@@ -24,8 +24,8 @@ function Connect-SuppliedKeyTarget {
     $serial.Open()
     $serial.DiscardInBuffer()
     Write-Host "Press Reset without holding A or B. Waiting for supplied-key mode 15; no commands are sent to an unidentified sketch."
-    $deadline = [DateTime]::UtcNow.AddSeconds(120)
-    while ([DateTime]::UtcNow -lt $deadline) {
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    while ($timer.Elapsed.TotalSeconds -lt 120) {
       try {
         if ($serial.ReadLine().Trim() -ceq "MXCHIP_SUPPLIED_KEYS_MODE15_V1") { return $serial }
       } catch [TimeoutException] {}
@@ -46,9 +46,9 @@ function Invoke-SuppliedKeyCommand {
   )
   if ($Command.Length -gt 126 -or $Command -match '[^\x20-\x7E]') { throw "Invalid local command." }
   $Serial.WriteLine($Command)
-  $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+  $timer = [Diagnostics.Stopwatch]::StartNew()
   $received = 0
-  while ([DateTime]::UtcNow -lt $deadline) {
+  while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
     try {
       $line = $Serial.ReadLine().Trim()
       $received += $line.Length

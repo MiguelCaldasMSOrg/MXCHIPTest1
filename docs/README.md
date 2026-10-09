@@ -5,10 +5,11 @@
 - [Project README](../README.md): supported modes, build/upload instructions,
   controls, tests and application-only release assets.
 - [Supplied STSAFE host keys](LEGACY-PROVISIONING.md): supplied-key-only setup,
-  original EEPROM behavior and chip-bound encryption. No data migration,
-  provisioning recovery or protection automation.
-- [Board maintenance](BOARD-MAINTENANCE.md): independently requested same-board
+  SDK EEPROM behavior, chip-bound encryption, prerequisites and failure handling.
+- [Board maintenance](BOARD-MAINTENANCE.md): same-board
   flash images and reversible ST-Link USB mass-storage presentation.
+- [Vendor packages](../README.md#st-link-firmware-updater): offline ST driver
+  and firmware-updater archives, license terms, hashes and libusb sources.
 
 These guides describe this repository's maintained functionality. The
 snapshots below are historical upstream references, not current project

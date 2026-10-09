@@ -160,9 +160,9 @@ jobs:
           notes=$(cat <<'NOTES'
           **Application-only firmware.** Upload `MXCHIPTest1.ino.bin` with Arduino CLI/OpenOCD at **`0x0800C000`**. Do **not** copy this binary onto the AZ3166 virtual disk.
 
-          Assets: application binary, ELF, map and the STSELib BSD-3-Clause license. No generic `.full.bin`, board-specific images, keys or recovery archives are published.
+          Assets: application binary, ELF, map and the STSELib BSD-3-Clause license.
 
-          Firmware uses the default mode selected in `src/AppConfig.h`; compile another mode explicitly when needed. Supplied-key mode 15 has no migration, recovery, random-host-key or RDP automation and remains unqualified on personalized hardware.
+          Firmware uses the default mode selected in `src/AppConfig.h`; compile another mode explicitly when needed. Mode 15 installs operator-supplied STSAFE host keys after explicit confirmation. Key personalization requires hardware qualification; read the supplied-key guide before use.
           NOTES
           )
 

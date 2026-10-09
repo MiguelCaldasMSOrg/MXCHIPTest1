@@ -17,6 +17,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "BoardToolOutput.ps1")
 Import-Module (Join-Path $PSScriptRoot "BoardMaintenance.psm1") -DisableNameChecking -Force
 $projectRoot = Split-Path -Parent $PSScriptRoot
 if (-not $Application) { $Application = Join-Path $projectRoot "build\MXCHIPTest1.ino.bin" }
@@ -31,6 +32,7 @@ if (-not $OutputDirectory) {
 $output = Assert-MxLocalDirectory -Path $OutputDirectory -ForbiddenRoot $projectRoot
 if (Test-Path -LiteralPath $output) { throw "Output directory already exists; nothing will be overwritten." }
 $openocd = Resolve-MxOpenOcd -Root $OpenOcdRoot -UsbPid $probe.UsbPid
+Write-Verbose "Selected OpenOCD: $($openocd.Exe); $($openocd.Version)"
 $snapshot = New-MxSnapshotConfiguration -SerialNumber $probe.SerialNumber -UsbPid $probe.UsbPid -InterfaceScript $openocd.InterfaceScript
 Write-Output "Board: $($probe.SerialNumber); application SHA-256: $applicationHash"
 Write-Output "Output: $output"
@@ -42,27 +44,44 @@ $completed = $false
 $image = $null
 $prefix = $null
 $second = $null
+$operation = [pscustomobject]@{
+  LogPath = Join-Path $output "operation.log"
+  ShowDiagnostics = $VerbosePreference -eq "Continue"
+  Stage = "Snapshot"
+  LastState = "Initial run/halt state not yet recorded"
+}
 try {
+  [IO.File]::WriteAllText($operation.LogPath, "Confidential same-board snapshot diagnostics; may contain device identities and local paths.`r`n")
+  Write-Output "Diagnostics: $($operation.LogPath)"
+  Write-Host "Reading and checking the same-board image..."
   $config = Join-Path $output "snapshot.cfg"
   [IO.File]::WriteAllText($config, $snapshot, [Text.UTF8Encoding]::new($false))
   try {
     $result = Invoke-MxTool $openocd.Exe @("-s", $openocd.Scripts, "-f", $config) $output -TimeoutSeconds 90
-    Assert-MxNativeSuccess $result "Read-only board snapshot"
-    if ($result.Text -notmatch '(?m)^MXCHIP_SNAPSHOT_OK\s*$') { throw "OpenOCD did not confirm a successful snapshot and target-state restoration.`n$($result.Text)" }
+    Write-MxMscDiagnostic $operation "Snapshot exit $($result.ExitCode):`r`n$($result.Text)"
+    if ($result.ExitCode -ne 0 -or $result.Text -notmatch '(?m)^MXCHIP_SNAPSHOT_OK\s*$') {
+      throw "The snapshot or target-state restoration was not confirmed. No image will be published."
+    }
+    $operation.LastState = "Original CPU run/halt and watchdog-debug state restored"
   } catch {
     $originalError = $_
     $statePath = Join-Path $output "state.txt"
     if (Test-Path -LiteralPath $statePath -PathType Leaf) {
       try {
+        $operation.Stage = "Restoring target execution state"
+        Write-Host "Restoring the board's execution state..."
         $recovery = New-MxSnapshotRecoveryConfiguration $probe.SerialNumber $probe.UsbPid ([IO.File]::ReadAllText($statePath)) -InterfaceScript $openocd.InterfaceScript
         $recoveryPath = Join-Path $output "recover.cfg"
         [IO.File]::WriteAllText($recoveryPath, $recovery, [Text.UTF8Encoding]::new($false))
         $restored = Invoke-MxTool $openocd.Exe @("-s", $openocd.Scripts, "-f", $recoveryPath) $output -TimeoutSeconds 20
-        Assert-MxNativeSuccess $restored "Target-state recovery"
-        if ($restored.Text -notmatch '(?m)^MXCHIP_RECOVERY_OK\s*$') { throw "Missing target-state recovery acknowledgement." }
+        Write-MxMscDiagnostic $operation "State restoration exit $($restored.ExitCode):`r`n$($restored.Text)"
+        if ($restored.ExitCode -ne 0 -or $restored.Text -notmatch '(?m)^MXCHIP_RECOVERY_OK\s*$') { throw "Target-state restoration was not confirmed." }
+        $operation.LastState = "Recorded execution/debug state restored"
+        $operation.Stage = "Snapshot"
       } catch {
-        Write-Warning "Could not restore target state: $($_.Exception.Message). The board may still be halted; inspect it before continuing."
+        throw "Snapshot failed and execution-state recovery failed: $($_.Exception.Message). The board may still be halted; inspect it before continuing."
       }
+      $operation.Stage = "Verifying image"
     }
     throw $originalError
   }
@@ -101,10 +120,12 @@ try {
     warning = "Secret-bearing same-board image, not a complete device backup. Never commit, publish, or use on another board."
   }
   [IO.File]::WriteAllText((Join-Path $output "manifest.json"), ($manifest | ConvertTo-Json -Depth 4), [Text.UTF8Encoding]::new($false))
-  $completed = $true
-  Write-Output "Created and verified: $imagePath"
   Write-Output "SHA-256: $imageHash"
-  Write-Output "No application/probe flash or STSAFE storage was written. Original CPU run/halt state restored."
+  $completed = $true
+} catch {
+  $reason = $_.Exception.Message
+  try { Write-MxMscDiagnostic $operation "TERMINAL ERROR: $reason" } catch { $reason += " Diagnostic logging also failed: $($_.Exception.Message)" }
+  throw "Board-image creation failed.`nStage: $($operation.Stage)`nLast state: $($operation.LastState)`nReason: $reason`nDiagnostics: $($operation.LogPath)"
 } finally {
   foreach ($bytes in @($image, $prefix, $second, $applicationBytes)) {
     if ($null -ne $bytes) { [Array]::Clear($bytes, 0, $bytes.Length) }
@@ -118,6 +139,6 @@ try {
     foreach ($path in @((Join-Path $output "manifest.json"), (Get-Variable imagePath -ValueOnly -ErrorAction SilentlyContinue))) {
       if ($path -and (Test-Path -LiteralPath $path -PathType Leaf)) { Remove-Item -LiteralPath $path -Force }
     }
-    Write-Warning "No valid board image was published. The empty/private output directory is retained for inspection."
   }
 }
+Write-BoardVerified "same-board image saved to $imagePath; original CPU state restored. No flash or STSAFE writes."
