@@ -7,7 +7,7 @@ $middlewareDirectory = Join-Path (Join-Path (Join-Path $projectRoot "libraries")
 New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 
 $cases = @(
-  @{ Name = "onboard_dispatch"; Modes = @(0..15); Sources = @("OnboardTests.cpp") },
+  @{ Name = "onboard_dispatch"; Modes = @(0..16); Sources = @("OnboardTests.cpp") },
   @{ Name = "diagnostic_checks"; Modes = @(0); Sources = @() },
   @{ Name = "wifi"; Modes = @(0, 5); Sources = @("WiFiTests.cpp") },
   @{ Name = "wifi_provisioning"; Modes = @(0, 8); Sources = @("WiFiProvisioning.cpp") },

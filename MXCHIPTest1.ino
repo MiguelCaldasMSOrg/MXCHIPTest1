@@ -3,6 +3,7 @@
 #include "src/AudioTests.h"
 #include "src/GroveEInkTests.h"
 #include "src/GroveOledTests.h"
+#include "src/GroveNfcTests.h"
 #include "src/LoRaBridge.h"
 #include "src/OnboardTests.h"
 #include "src/RadioBridge.h"
@@ -104,7 +105,13 @@ void setup() {
   Screen.print(2, "Ready");
 
   Serial.println("MXCHIP AZ3166 test sketch started.");
-  if (AppConfig::kSecureProvisioningEnabled) {
+  if (AppConfig::kNfcEnabled) {
+    GroveNfcTests::begin();
+    return;
+  }
+  if (AppConfig::kNfcEnabled) {
+    GroveNfcTests::buttonA();
+  } else if (AppConfig::kSecureProvisioningEnabled) {
     SecureProvisioningMode::begin();
     return;
   }
@@ -160,7 +167,9 @@ void loop() {
     AudioTests::update();
   }
   if (buttonA.pressedEdge(millis())) {
-    if (AppConfig::kSecureProvisioningEnabled) {
+    if (AppConfig::kNfcEnabled) {
+      GroveNfcTests::buttonB();
+    } else if (AppConfig::kSecureProvisioningEnabled) {
       SecureProvisioningMode::authorize();
     } else if (AppConfig::kOnboardTestsEnabled) {
       OnboardTests::buttonA();
@@ -179,7 +188,9 @@ void loop() {
     }
   }
   if (buttonB.pressedEdge(millis())) {
-    if (AppConfig::kSecureProvisioningEnabled) {
+    if (AppConfig::kNfcEnabled) {
+      GroveNfcTests::update();
+    } else if (AppConfig::kSecureProvisioningEnabled) {
       SecureProvisioningMode::abort();
     } else if (AppConfig::kOnboardTestsEnabled) {
       OnboardTests::buttonB();

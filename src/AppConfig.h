@@ -6,6 +6,7 @@
 // 9: onboard sensors, 10: microphone, 11: filesystem, 12: network services,
 // 13: IrDA transmitter, 14: non-destructive STSAFE middleware diagnostics.
 // 15: explicitly confirmed, user-supplied STSAFE host keys only.
+// 16: Grove NFC v1.1 factory UART, tag reads and confirmed spare-tag write tests.
 #ifndef MXCHIP_TEST_MODE
 #ifdef MXCHIP_ENABLE_AUDIO_TESTS
 #define MXCHIP_TEST_MODE MXCHIP_ENABLE_AUDIO_TESTS
@@ -31,10 +32,11 @@ namespace AppConfig {
     NetworkServices = 12,
     Irda = 13,
     SecurityChip = 14,
-    SecureProvisioning = 15
+    SecureProvisioning = 15,
+    GroveNfc = 16
   };
 
-  static_assert(MXCHIP_TEST_MODE >= 0 && MXCHIP_TEST_MODE <= 15, "MXCHIP_TEST_MODE must be from 0 through 15.");
+  static_assert(MXCHIP_TEST_MODE >= 0 && MXCHIP_TEST_MODE <= 16, "MXCHIP_TEST_MODE must be from 0 through 16.");
 #ifdef MXCHIP_ENABLE_AUDIO_TESTS
   static_assert(MXCHIP_ENABLE_AUDIO_TESTS == 0 || MXCHIP_ENABLE_AUDIO_TESTS == 1, "MXCHIP_ENABLE_AUDIO_TESTS must be 0 or 1.");
   static_assert(MXCHIP_TEST_MODE == MXCHIP_ENABLE_AUDIO_TESTS, "Conflicting legacy audio flag and MXCHIP_TEST_MODE.");
@@ -55,6 +57,7 @@ namespace AppConfig {
   constexpr bool kIrdaEnabled = kMode == Mode::Irda;
   constexpr bool kSecurityChipEnabled = kMode == Mode::SecurityChip;
   constexpr bool kSecureProvisioningEnabled = kMode == Mode::SecureProvisioning;
+  constexpr bool kNfcEnabled = kMode == Mode::GroveNfc;
   constexpr bool kOnboardTestsEnabled = kSensorsEnabled || kMicrophoneEnabled || kFileSystemEnabled || kNetworkServicesEnabled || kIrdaEnabled || kSecurityChipEnabled;
   constexpr bool kRadioEnabled = kMode == Mode::AskRadio || kMode == Mode::Audio;
   constexpr bool kRadioTransmitEnabled = kMode == Mode::AskRadio;

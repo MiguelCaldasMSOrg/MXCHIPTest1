@@ -114,6 +114,7 @@ jobs:
           & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-diagnostics.ps1")
           & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-stsafe.ps1")
           & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-supplied-keys.ps1")
+          & (Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "test-nfc.ps1")
 
       - name: Test application firmware validation
         shell: pwsh
@@ -125,7 +126,7 @@ jobs:
         shell: pwsh
         run: |
           $builder = Join-Path (Join-Path $env:GITHUB_WORKSPACE "tools") "build.ps1"
-          foreach ($mode in 0..15) {
+          foreach ($mode in 0..16) {
             & $builder -Mode $mode -BuildDirectory (Join-Path "_build" "mode-$mode")
           }
 

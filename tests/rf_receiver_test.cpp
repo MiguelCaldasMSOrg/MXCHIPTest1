@@ -211,7 +211,7 @@ static void testSerialInput() {
 int main() {
   check(
     static_cast<int>(AppConfig::kAudioEnabled) + AppConfig::kRadioTransmitEnabled + AppConfig::kLoRaEnabled + AppConfig::kRtcEnabled + AppConfig::kWiFiEnabled + AppConfig::kGroveOledEnabled + AppConfig::kGroveEInkEnabled + AppConfig::kWiFiProvisioningEnabled + AppConfig::kSensorsEnabled +
-        AppConfig::kMicrophoneEnabled + AppConfig::kFileSystemEnabled + AppConfig::kNetworkServicesEnabled + AppConfig::kIrdaEnabled + AppConfig::kSecurityChipEnabled + AppConfig::kSecureProvisioningEnabled ==
+        AppConfig::kMicrophoneEnabled + AppConfig::kFileSystemEnabled + AppConfig::kNetworkServicesEnabled + AppConfig::kIrdaEnabled + AppConfig::kSecurityChipEnabled + AppConfig::kSecureProvisioningEnabled + AppConfig::kNfcEnabled ==
       1,
     "exactly one firmware mode must be selected"
   );

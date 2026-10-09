@@ -2,7 +2,7 @@
 
 Arduino multi-peripheral test sketch for the Microsoft Azure IoT DevKit /
 MXCHIP AZ3166. The current default mode tests a Grove High Precision RTC v1.0
-(PCF85063TP) on the I2C Grove socket. Sixteen independent modes cover Grove
+(PCF85063TP) on the I2C Grove socket. Seventeen independent modes cover Grove
 peripherals, onboard sensors/audio, Wi-Fi, storage, infrared and read-only
 security-chip diagnostics plus explicitly confirmed supplied-host-key setup.
 
@@ -118,11 +118,12 @@ Set `MXCHIP_TEST_MODE` in [src/AppConfig.h](src/AppConfig.h):
 | `13` | IrDA transmitter | Explicitly requested 38400-baud SIR test bursts on the onboard emitter. |
 | `14` | Security chip | STSELib metadata, binary echo, hardware RNG and public-vector ECDSA verification; no personalization. |
 | `15` | Supplied STSAFE host keys | Install operator-supplied MAC/cipher keys and SDK-compatible host loaders after host-tool and Button A confirmation. |
+| `16` | Grove NFC v1.1 | PN532 factory UART on P0/P14; A Read/Write controls, B selects NTAG213 / Classic 1K / NTAG215/216, UID-confirmed scratch write/readback/restore tests. |
 
 The active paths are derived from this one setting; conflicting or invalid
 settings fail at compile time. `MXCHIP_ENABLE_AUDIO_TESTS=0/1` selects ASK/audio
 mode when `MXCHIP_TEST_MODE` is not defined.
-The release workflow validates all sixteen configurations and builds its default
+The release workflow validates all seventeen configurations and builds its default
 firmware from the same `MXCHIP_TEST_MODE` setting, without a separate mode override.
 
 Wi-Fi mode uses the SSID and password already stored in the board's secure
@@ -247,6 +248,112 @@ reinitializing the bus through `Wire`.
 - Board: `AZ3166:stm32f4:MXCHIP_AZ3166`
 - Saved local serial/upload default: `COM3` in [sketch.yaml](sketch.yaml);
   use `arduino-cli board list` to find the actual port.
+
+### Grove NFC v1.1 (mode 16)
+
+Keep the PN532 module's factory **UART** solder configuration and connect its
+Grove cable to **P0/P14**, with the adapter supply set to **3.3 V**:
+
+| Module signal | AZ3166 signal |
+| --- | --- |
+| RX (Grove pin 1, yellow) | P0 / PB_0, software-UART TX |
+| TX (Grove pin 2, white) | P14 / PB_14, software-UART RX |
+| VCC / GND | 3.3 V / GND |
+
+Do not connect the factory-UART module to I2C. I2C requires changing its
+solder pads and is not the interface implemented by this mode. The hardware
+UART pins P1/P2 are split between two sockets; the standard P0/P14 connection
+uses a dedicated, synchronous 115200-baud software UART. Other modes retain
+their original pin ownership and onboard-display initialization.
+Disconnect other modules from P0/P14 and attach the NFC antenna before use.
+
+```powershell
+.\tools\build.ps1 -Mode 16 -BuildDirectory _build\nfc
+arduino-cli upload --port COM14 --fqbn AZ3166:stm32f4:MXCHIP_AZ3166 --input-dir _build\nfc .
+arduino-cli monitor --port COM14 --config baudrate=115200
+```
+
+Use the actual COM port reported by the board. Startup wakes the PN532,
+queries its firmware, selects SAM normal mode without an IRQ wire, configures
+finite passive activation retries, then starts with **NTAG213 selected and
+Button A in Read mode**. The OLED continuously shows selected type (row 0),
+current A Read/Write mode and result (row 1), UID or no-tag state (row 2),
+and controls/authorization (row 3). Long UIDs use the Screen scrolling API.
+Errors and pending restoration keep the model/mode/UID visible.
+There is no automatic tag-data write or continuous RF scan.
+Transport/ACK/frame errors are explicit rather than treated as "no tag."
+
+#### Button controls and supported tags
+
+| Action | Behavior |
+| --- | --- |
+| A in Read | Scan one ISO14443-A tag, check the selected type, read scratch data. Success changes A to Write; no tag, wrong type or failed read leaves A in Read. |
+| A in Write | Arm one UID-confirmed serial write command for 60 seconds, then immediately return A to Read. This press does not itself write data. |
+| B | Always cancel authorization/partial serial input and reset A to Read. |
+| First B at startup or first B after A | Reset only; keep the selected tag type. |
+| Each consecutive B after B | Cycle NTAG213 -> MIFARE Classic 1K -> NTAG215/216 -> NTAG213. No timed double-click threshold; this means consecutive physical button actions. |
+
+`SCAN` performs the same selected-type read without physically arming a write;
+`HELP` prints controls. Serial reads report UID, ATQA, SAK, exact detected
+model (including NTAG215 versus NTAG216), storage code, and 16 scratch bytes
+in hexadecimal: Classic block 4 or NTAG pages 4-7. Write output identifies
+the affected block/page and restoration outcome. This can expose tag data;
+use spare tags and avoid logging sensitive contents.
+Serial commands do not count as physical A/B presses.
+While original data needs restoration, B still cancels authorization but
+cannot cycle the selected type; A arms only the restoration operation.
+
+| Selected type | Identification | Write target and preconditions |
+| --- | --- | --- |
+| NTAG213 | 7-byte UID, SAK `00`, exact NTAG21x GET_VERSION identity and storage code `0F`. | User page **4**, four bytes. Static/dynamic locks clear, AUTH0 `FF` (password disabled), configuration lock clear and mirroring disabled. |
+| MIFARE Classic 1K | SAK `08`, 4- or 7-byte UID plus successful authentication/read. | Sector 1 data **block 4**, 16 bytes; factory Key A `FFFFFFFFFFFF`, access bytes `FF 07 80` in trailer 7. |
+| NTAG215/216 | Same NTAG identity checks, storage code `11` or `13`; exact storage code is retained and rechecked. | User page **4**, four bytes; same conservative lock/protection/mirroring checks with the correct device-specific metadata pages. |
+
+The PN532 uses GET_VERSION through InCommunicateThru for NTAG identification.
+Lock/configuration metadata is read, not written. SAK or version bytes alone
+are not a proof of tag authenticity.
+
+#### Confirmed scratch-data write test
+
+Use a **spare tag**, not an access/payment card or valuable NDEF tag. NTAG
+page 4 commonly contains the start of NDEF data, so temporary changes can
+make the tag's contents unusable until restoration.
+
+1. Select the tag family using B, then press **A in Read** and note its UID.
+2. Press **A again in Write** to arm the serial command; A returns to Read.
+3. Within 60 seconds, send `WRITE <UID>` as one line, for example
+   `WRITE 01020304` using your tag's actual UID.
+4. Keep that one tag on the antenna, and keep board/module power connected.
+
+The test reads the scratch region twice, retains its original bytes in RAM,
+writes a different pattern, verifies it, then reselects/revalidates the same
+UID/type and restores/readback-checks the original data. NTAG writes only
+four bytes on page 4; the adjacent pages returned by READ must stay unchanged.
+Classic writes only block 4. Manufacturer data, sector trailers, keys,
+passwords, lock bits and configuration memory are never written.
+The saved data is not printed or sent to the PC. Authorization is one-use;
+another A press in Read cancels any outstanding arming and starts a new read.
+
+If write/readback fails but restoration succeeds, the **test still fails**;
+successful restoration is reported separately. If restoration cannot be
+verified, the original data stays in RAM and further scans/tests are blocked.
+**Do not reset or disconnect power:** return the same tag, press A, and send
+`RESTORE <UID>`. Another UID is rejected. Button B cancels authorization/input,
+not persistent writes or the retained original data. Power loss/reset clears
+the RAM copy and can leave the test pattern on the tag.
+
+Typed UID plus physical authorization permits one operation and is consumed
+even by an invalid request. Do not treat this as a secure access-control or
+tag-cloning implementation. It is a bench diagnostic with bounded protocol
+buffers/timeouts; UART timing and tag interactions require live qualification.
+
+Run the host tests with `.\tools\test-nfc.ps1`; they cover frame integrity,
+tag-family selection, A/B state transitions, page/block restrictions,
+authentication/lock/protection preconditions, write/readback/restoration
+failures, GPIO UART framing/timing and physical/UID confirmation gates.
+References: [Seeed Grove NFC hardware/interface guide](https://wiki.seeedstudio.com/Grove_NFC/),
+[PN532 HSU transport](https://github.com/Seeed-Studio/PN532/tree/master/PN532_HSU)
+and [PN532 command implementation](https://github.com/Seeed-Studio/PN532/tree/master/PN532).
 
 The board core includes the device libraries required for the AZ3166:
 Audio, Azure IoT, filesystem, MQTT, sensors, SPI, WebSocket, Wi-Fi, and Wire.
@@ -470,6 +577,7 @@ heartbeat, not a test result; it pauses while the RTC's blocking self-test runs.
 | `13` | Initialize IrDA; do not transmit automatically. | Send one known burst. | Print help. | `a`, `b`, `h`/`?`. |
 | `14` | Run non-destructive STSAFE HAL and middleware checks. | Rerun. | Print help. | `a`, `b`, `h`/`?`. |
 | `15` | Report key state; no automatic writes. | Authorize one supplied-key setup request for 60 seconds. | Cancel pending authorization/input; no undo. | `SK2` protocol via the supplied-key host tool; serial `a` cannot arm it. |
+| `16` | Check PN532; select NTAG213, A=Read. | Read selected tag; after success, next A arms a UID-confirmed write and returns to Read. Pending originals make A arm restoration instead. | Always reset A=Read/cancel; consecutive B presses cycle supported tag families unless restoration is pending. | `SCAN`, `HELP`, `WRITE <UID>`, `RESTORE <UID>`; physical A is required for writes. |
 
 In RTC modes, the RGB LED and OLED status show the last suite's pass/fail
 result, including suites invoked with serial `f`. The date/time rows update
@@ -993,11 +1101,12 @@ Run all suites on Windows with:
 .\tools\test-diagnostics.ps1
 .\tools\test-stsafe.ps1
 .\tools\test-supplied-keys.ps1
+.\tools\test-nfc.ps1
 .\tools\test-validate-firmware.ps1
 .\tools\test-board-maintenance.ps1
 ```
 
-Mode-exclusion tests run in all sixteen modes and cover framing, CRC, payload bounds,
+Mode-exclusion tests run in all seventeen modes and cover framing, CRC, payload bounds,
 sampling phase, timing variation, noise, exact transmitted bits, serial line
 endings, queue overflow, display scrolling, and the absence of local echo.
 Application tests also verify that audio mode never constructs or drives the
@@ -1052,7 +1161,7 @@ Windows-only ACL and updater-orchestration checks run locally; portable
 maintenance checks also run in GitHub Actions.
 
 Local and CI validation use the same PowerShell test/build entry points.
-The release workflow builds all sixteen modes and checks original EEPROM
+The release workflow builds all seventeen modes and checks original EEPROM
 linkage and application-only image validity for every build, then publishes
 the source-selected default from [src/AppConfig.h](src/AppConfig.h).
 

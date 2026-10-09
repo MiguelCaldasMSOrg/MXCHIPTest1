@@ -1,5 +1,5 @@
 param(
-  [ValidateRange(0, 15)][int]$Mode,
+  [ValidateRange(0, 16)][int]$Mode,
   [string]$BuildDirectory
 )
 
